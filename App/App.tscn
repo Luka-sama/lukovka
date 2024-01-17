@@ -1,0 +1,27 @@
+[gd_scene load_steps=5 format=3 uid="uid://ct3b33bysfx16"]
+
+[ext_resource type="Theme" uid="uid://dpcikkauvgp38" path="res://theme/theme.tres" id="1_e27dq"]
+[ext_resource type="Script" path="res://App/App.cs" id="2_0260a"]
+[ext_resource type="PackedScene" uid="uid://tuck2brej4xl" path="res://views/list/List.tscn" id="3_j3uqi"]
+[ext_resource type="PackedScene" uid="uid://bjb5h6c5d6tlu" path="res://TaskDetails/TaskDetails.tscn" id="4_lm3yq"]
+
+[node name="App" type="Control"]
+process_mode = 3
+layout_mode = 3
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+mouse_filter = 2
+theme = ExtResource("1_e27dq")
+script = ExtResource("2_0260a")
+
+[node name="View" parent="." instance=ExtResource("3_j3uqi")]
+process_mode = 1
+layout_mode = 1
+
+[node name="TaskDetails" parent="." instance=ExtResource("4_lm3yq")]
+unique_name_in_owner = true
+visible = false
+layout_mode = 1

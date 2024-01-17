@@ -1,0 +1,53 @@
+[gd_scene load_steps=3 format=3 uid="uid://fjvbo32hhmms"]
+
+[ext_resource type="Script" path="res://views/list/ListTask.cs" id="1_rcshf"]
+
+[sub_resource type="StyleBoxFlat" id="StyleBoxFlat_ryiv1"]
+content_margin_left = 5.0
+content_margin_top = 5.0
+content_margin_right = 5.0
+content_margin_bottom = 5.0
+bg_color = Color(0.588235, 0.619608, 0.984314, 1)
+border_width_left = 2
+border_width_top = 2
+border_width_right = 2
+border_width_bottom = 2
+border_color = Color(0.309804, 0.25098, 0.858824, 1)
+corner_radius_top_left = 5
+corner_radius_top_right = 5
+corner_radius_bottom_right = 5
+corner_radius_bottom_left = 5
+
+[node name="ListTask" type="HBoxContainer"]
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+script = ExtResource("1_rcshf")
+
+[node name="Nested" type="Control" parent="."]
+unique_name_in_owner = true
+layout_mode = 2
+
+[node name="Complete" type="Button" parent="."]
+layout_mode = 2
+size_flags_vertical = 0
+text = "✓"
+
+[node name="Spacer" type="Control" parent="."]
+custom_minimum_size = Vector2(5, 0)
+layout_mode = 2
+
+[node name="Text" type="RichTextLabel" parent="."]
+unique_name_in_owner = true
+layout_mode = 2
+size_flags_horizontal = 3
+focus_mode = 2
+theme_override_styles/normal = SubResource("StyleBoxFlat_ryiv1")
+bbcode_enabled = true
+fit_content = true
+selection_enabled = true
+
+[connection signal="pressed" from="Complete" to="." method="CompleteTask"]
+[connection signal="gui_input" from="Text" to="." method="OpenTask"]
