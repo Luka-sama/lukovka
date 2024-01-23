@@ -1,6 +1,7 @@
-[gd_scene load_steps=3 format=3 uid="uid://fjvbo32hhmms"]
+[gd_scene load_steps=4 format=3 uid="uid://fjvbo32hhmms"]
 
 [ext_resource type="Script" path="res://views/list/ListTask.cs" id="1_rcshf"]
+[ext_resource type="Script" path="res://scripts/ImprovedRichTextLabel.cs" id="2_tymi1"]
 
 [sub_resource type="StyleBoxFlat" id="StyleBoxFlat_ryiv1"]
 content_margin_left = 5.0
@@ -26,11 +27,8 @@ grow_horizontal = 2
 grow_vertical = 2
 script = ExtResource("1_rcshf")
 
-[node name="Nested" type="Control" parent="."]
-unique_name_in_owner = true
-layout_mode = 2
-
 [node name="Complete" type="Button" parent="."]
+custom_minimum_size = Vector2(25, 32)
 layout_mode = 2
 size_flags_vertical = 0
 text = "✓"
@@ -48,6 +46,15 @@ theme_override_styles/normal = SubResource("StyleBoxFlat_ryiv1")
 bbcode_enabled = true
 fit_content = true
 selection_enabled = true
+script = ExtResource("2_tymi1")
+
+[node name="Expand" type="Button" parent="."]
+unique_name_in_owner = true
+custom_minimum_size = Vector2(32, 32)
+layout_mode = 2
+size_flags_vertical = 0
+text = "🠖"
 
 [connection signal="pressed" from="Complete" to="." method="CompleteTask"]
 [connection signal="gui_input" from="Text" to="." method="OpenTask"]
+[connection signal="pressed" from="Expand" to="." method="ExpandTask"]

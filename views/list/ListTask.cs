@@ -1,8 +1,8 @@
 using System;
+using System.Linq;
 using Godot;
 
 public partial class ListTask : Control {
-	private const int NestingOffset = 35;
 	private Task _task;
 	
 	public void SetTask(Task task) {
@@ -12,9 +12,16 @@ public partial class ListTask : Control {
 		if (task.Completed != DateTime.MinValue) {
 			text = "[s]" + text + "[/s]";
 		}
-		GetNode<RichTextLabel>("%Text").AppendText(text);
-		
-		GetNode<Control>("%Nested").CustomMinimumSize = new Vector2(task.NestingLevel * NestingOffset, 0);
+		if (!string.IsNullOrEmpty(task.Description)) {
+			text += " [color=#EEEEEE]≡[/color]";
+		}
+		GetNode<ImprovedRichTextLabel>("%Text").AppendText(text);
+
+		if (task.Expanded) {
+			GetNode<Button>("%Expand").Text = "🠗";
+		} else if (App.Tasks.Values.All(task2 => task2.Parent != task.Id)) {
+			GetNode<Button>("%Expand").Text = "+";
+		}
 	}
 
 	private void CompleteTask() {
@@ -24,7 +31,15 @@ public partial class ListTask : Control {
 
 	private void OpenTask(InputEvent @event) {
 		if (@event is InputEventMouseButton click && click.IsPressed() && click.DoubleClick) {
-			App.TaskDetails.ShowTask(_task);
+			App.ShowDetails(_task);
 		}
+	}
+
+	private void ExpandTask() {
+		_task.Expanded = !_task.Expanded;
+		if (App.View is List) {
+			List.FocusTask(_task.Id);
+		}
+		App.View.Render();
 	}
 }

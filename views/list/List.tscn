@@ -2,7 +2,7 @@
 
 [ext_resource type="Script" path="res://views/list/List.cs" id="1_q4uf4"]
 
-[node name="ListView" type="MarginContainer"]
+[node name="ListView" type="HBoxContainer"]
 anchors_preset = 15
 anchor_right = 1.0
 anchor_bottom = 1.0
@@ -12,39 +12,34 @@ size_flags_horizontal = 3
 size_flags_vertical = 3
 script = ExtResource("1_q4uf4")
 
+[node name="Spacer" type="Control" parent="."]
+unique_name_in_owner = true
+custom_minimum_size = Vector2(35, 0)
+layout_mode = 2
+
 [node name="VBoxContainer" type="VBoxContainer" parent="."]
 layout_mode = 2
-
-[node name="ScrollContainer" type="ScrollContainer" parent="VBoxContainer"]
-unique_name_in_owner = true
-layout_mode = 2
-size_flags_vertical = 3
-vertical_scroll_mode = 3
-
-[node name="VBoxContainer" type="VBoxContainer" parent="VBoxContainer/ScrollContainer"]
-layout_mode = 2
 size_flags_horizontal = 3
 size_flags_vertical = 3
 
-[node name="TaskList" type="VBoxContainer" parent="VBoxContainer/ScrollContainer/VBoxContainer"]
+[node name="TaskList" type="VBoxContainer" parent="VBoxContainer"]
 unique_name_in_owner = true
 layout_mode = 2
 
-[node name="Spacer" type="Control" parent="VBoxContainer/ScrollContainer/VBoxContainer"]
-custom_minimum_size = Vector2(0, 15)
+[node name="NewTask" type="HBoxContainer" parent="VBoxContainer"]
+unique_name_in_owner = true
 layout_mode = 2
 
-[node name="NewTask" type="HBoxContainer" parent="VBoxContainer/ScrollContainer/VBoxContainer"]
-layout_mode = 2
-
-[node name="NewTaskText" type="LineEdit" parent="VBoxContainer/ScrollContainer/VBoxContainer/NewTask"]
+[node name="NewTaskText" type="LineEdit" parent="VBoxContainer/NewTask"]
 unique_name_in_owner = true
 layout_mode = 2
 size_flags_horizontal = 3
 
-[node name="Button" type="Button" parent="VBoxContainer/ScrollContainer/VBoxContainer/NewTask"]
+[node name="Button" type="Button" parent="VBoxContainer/NewTask"]
+custom_minimum_size = Vector2(32, 32)
 layout_mode = 2
+focus_mode = 1
 text = "➣"
 
-[connection signal="text_submitted" from="VBoxContainer/ScrollContainer/VBoxContainer/NewTask/NewTaskText" to="." method="SubmittedTask"]
-[connection signal="pressed" from="VBoxContainer/ScrollContainer/VBoxContainer/NewTask/Button" to="." method="CreateTask"]
+[connection signal="text_submitted" from="VBoxContainer/NewTask/NewTaskText" to="." method="SubmittedTask"]
+[connection signal="pressed" from="VBoxContainer/NewTask/Button" to="." method="CreateTask"]

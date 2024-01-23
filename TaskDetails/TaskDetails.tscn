@@ -1,7 +1,10 @@
-[gd_scene load_steps=4 format=3 uid="uid://bjb5h6c5d6tlu"]
+[gd_scene load_steps=7 format=3 uid="uid://bjb5h6c5d6tlu"]
 
 [ext_resource type="Script" path="res://TaskDetails/TaskDetails.cs" id="1_04yaj"]
 [ext_resource type="FontFile" uid="uid://bjswefwewxc3c" path="res://fonts/verdanab.ttf" id="2_mq8l4"]
+[ext_resource type="Script" path="res://scripts/ImprovedRichTextLabel.cs" id="3_an06n"]
+[ext_resource type="Script" path="res://TaskDetails/ImprovedTextEdit.cs" id="3_ybv28"]
+[ext_resource type="Script" path="res://TaskDetails/Numeric.cs" id="4_57bjy"]
 
 [sub_resource type="StyleBoxFlat" id="StyleBoxFlat_1q46n"]
 content_margin_left = 10.0
@@ -53,29 +56,43 @@ layout_mode = 2
 mouse_filter = 1
 theme_override_styles/panel = SubResource("StyleBoxFlat_1q46n")
 
-[node name="VBoxContainer" type="VBoxContainer" parent="TaskDetailsContainer/PanelContainer"]
+[node name="TaskDetailsShowing" type="VBoxContainer" parent="TaskDetailsContainer/PanelContainer"]
+unique_name_in_owner = true
 layout_mode = 2
 
-[node name="HBoxContainer" type="HBoxContainer" parent="TaskDetailsContainer/PanelContainer/VBoxContainer"]
+[node name="HBoxContainer" type="HBoxContainer" parent="TaskDetailsContainer/PanelContainer/TaskDetailsShowing"]
 layout_mode = 2
 
-[node name="Edit" type="Button" parent="TaskDetailsContainer/PanelContainer/VBoxContainer/HBoxContainer"]
-custom_minimum_size = Vector2(40, 0)
+[node name="SetAsRoot" type="Button" parent="TaskDetailsContainer/PanelContainer/TaskDetailsShowing/HBoxContainer"]
+unique_name_in_owner = true
+custom_minimum_size = Vector2(40, 40)
+layout_mode = 2
+size_flags_vertical = 0
+text = "👁"
+
+[node name="Complete" type="Button" parent="TaskDetailsContainer/PanelContainer/TaskDetailsShowing/HBoxContainer"]
+custom_minimum_size = Vector2(40, 40)
+layout_mode = 2
+size_flags_vertical = 0
+text = "✓"
+
+[node name="Edit" type="Button" parent="TaskDetailsContainer/PanelContainer/TaskDetailsShowing/HBoxContainer"]
+custom_minimum_size = Vector2(40, 40)
 layout_mode = 2
 size_flags_vertical = 0
 text = "✎"
 
-[node name="Delete" type="Button" parent="TaskDetailsContainer/PanelContainer/VBoxContainer/HBoxContainer"]
-custom_minimum_size = Vector2(40, 0)
+[node name="Delete" type="Button" parent="TaskDetailsContainer/PanelContainer/TaskDetailsShowing/HBoxContainer"]
+custom_minimum_size = Vector2(40, 40)
 layout_mode = 2
 size_flags_vertical = 0
 text = "×"
 
-[node name="Spacer" type="Control" parent="TaskDetailsContainer/PanelContainer/VBoxContainer/HBoxContainer"]
-custom_minimum_size = Vector2(20, 0)
+[node name="Spacer" type="Control" parent="TaskDetailsContainer/PanelContainer/TaskDetailsShowing/HBoxContainer"]
+custom_minimum_size = Vector2(5, 0)
 layout_mode = 2
 
-[node name="Text" type="RichTextLabel" parent="TaskDetailsContainer/PanelContainer/VBoxContainer/HBoxContainer"]
+[node name="Text" type="RichTextLabel" parent="TaskDetailsContainer/PanelContainer/TaskDetailsShowing/HBoxContainer"]
 unique_name_in_owner = true
 layout_mode = 2
 size_flags_horizontal = 3
@@ -85,17 +102,69 @@ theme_override_font_sizes/normal_font_size = 32
 bbcode_enabled = true
 fit_content = true
 selection_enabled = true
+script = ExtResource("3_an06n")
 
-[node name="Spacer" type="Control" parent="TaskDetailsContainer/PanelContainer/VBoxContainer"]
-custom_minimum_size = Vector2(0, 20)
-layout_mode = 2
-
-[node name="Description" type="RichTextLabel" parent="TaskDetailsContainer/PanelContainer/VBoxContainer"]
+[node name="Description" type="RichTextLabel" parent="TaskDetailsContainer/PanelContainer/TaskDetailsShowing"]
 unique_name_in_owner = true
 layout_mode = 2
 focus_mode = 2
 bbcode_enabled = true
 fit_content = true
 selection_enabled = true
+script = ExtResource("3_an06n")
 
-[connection signal="pressed" from="TaskDetailsContainer/PanelContainer/VBoxContainer/HBoxContainer/Delete" to="." method="DeleteTask"]
+[node name="TaskDetailsEditing" type="GridContainer" parent="TaskDetailsContainer/PanelContainer"]
+unique_name_in_owner = true
+visible = false
+layout_mode = 2
+columns = 2
+
+[node name="TextLabel" type="Label" parent="TaskDetailsContainer/PanelContainer/TaskDetailsEditing"]
+layout_mode = 2
+text = "Text: "
+
+[node name="Text" type="LineEdit" parent="TaskDetailsContainer/PanelContainer/TaskDetailsEditing"]
+layout_mode = 2
+size_flags_horizontal = 3
+
+[node name="DescriptionLabel" type="Label" parent="TaskDetailsContainer/PanelContainer/TaskDetailsEditing"]
+layout_mode = 2
+text = "Description: "
+
+[node name="Description" type="TextEdit" parent="TaskDetailsContainer/PanelContainer/TaskDetailsEditing"]
+custom_minimum_size = Vector2(0, 100)
+layout_mode = 2
+script = ExtResource("3_ybv28")
+
+[node name="PointsLabel" type="Label" parent="TaskDetailsContainer/PanelContainer/TaskDetailsEditing"]
+layout_mode = 2
+text = "Points: "
+
+[node name="Points" type="LineEdit" parent="TaskDetailsContainer/PanelContainer/TaskDetailsEditing"]
+custom_minimum_size = Vector2(100, 0)
+layout_mode = 2
+size_flags_horizontal = 0
+script = ExtResource("4_57bjy")
+MinValue = 0
+
+[node name="IsFolderLabel" type="Label" parent="TaskDetailsContainer/PanelContainer/TaskDetailsEditing"]
+layout_mode = 2
+text = "Is folder: "
+
+[node name="IsFolder" type="CheckBox" parent="TaskDetailsContainer/PanelContainer/TaskDetailsEditing"]
+layout_mode = 2
+size_flags_horizontal = 0
+
+[node name="Control" type="Control" parent="TaskDetailsContainer/PanelContainer/TaskDetailsEditing"]
+layout_mode = 2
+
+[node name="SaveTask" type="Button" parent="TaskDetailsContainer/PanelContainer/TaskDetailsEditing"]
+layout_mode = 2
+size_flags_horizontal = 0
+text = "Save task"
+
+[connection signal="pressed" from="TaskDetailsContainer/PanelContainer/TaskDetailsShowing/HBoxContainer/SetAsRoot" to="." method="SetAsRoot"]
+[connection signal="pressed" from="TaskDetailsContainer/PanelContainer/TaskDetailsShowing/HBoxContainer/Complete" to="." method="CompleteTask"]
+[connection signal="pressed" from="TaskDetailsContainer/PanelContainer/TaskDetailsShowing/HBoxContainer/Edit" to="." method="EditTask"]
+[connection signal="pressed" from="TaskDetailsContainer/PanelContainer/TaskDetailsShowing/HBoxContainer/Delete" to="." method="DeleteTask"]
+[connection signal="pressed" from="TaskDetailsContainer/PanelContainer/TaskDetailsEditing/SaveTask" to="." method="SaveTask"]
