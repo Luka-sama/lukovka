@@ -7,7 +7,7 @@ public class Organizer {
 	
 	public static void Organize() {
 		var tasks = App.Tasks.Values.ToList();
-		tasks = tasks.Where(Filter.IsChildOfRoot).ToList();
+		tasks = tasks.Where(Filter.IsChildOfRoot).Where(Filter.NotCompleted).ToList();
 		Tasks = tasks;
 	}
 }

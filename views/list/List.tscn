@@ -41,5 +41,10 @@ layout_mode = 2
 focus_mode = 1
 text = "➣"
 
+[node name="HiddenTasks" type="Control" parent="."]
+unique_name_in_owner = true
+visible = false
+layout_mode = 2
+
 [connection signal="text_submitted" from="VBoxContainer/NewTask/NewTaskText" to="." method="SubmittedTask"]
 [connection signal="pressed" from="VBoxContainer/NewTask/Button" to="." method="CreateTask"]

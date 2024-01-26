@@ -5,6 +5,7 @@ using Newtonsoft.Json;
 public partial class App : Control {
 	public static readonly Dictionary<int, Task> Tasks = new();
 	public static TaskView View { get; private set; }
+	public static Rect2 Rect => _scrollContainer.GetGlobalRect();
 	private const string ServerUrl = "https://enveltia.net/lukovka.php?key=t8B_JR_c_u3y0t6HSabj";
 	private static Control _root;
 	private static TaskDetails _taskDetails;
@@ -15,8 +16,8 @@ public partial class App : Control {
 		_root = this;
 		_taskDetails = GetNode<TaskDetails>("%TaskDetails");
 		_scrollContainer = GetNode<ScrollContainer>("%ScrollContainer");
-		if (OS.GetName() == "Android") {
-			GetTree().Root.ContentScaleFactor = 2f;
+		if (IsMobile()) {
+			GetTree().Root.ContentScaleFactor = 2.25f;
 		}
 		
 		Request(HttpClient.Method.Get);
@@ -26,8 +27,13 @@ public partial class App : Control {
 		if (@event is InputEventMouseButton click && click.IsPressed()) {
 			GetViewport().GuiGetFocusOwner()?.ReleaseFocus();
 		} else if (@event.IsActionPressed("quit")) {
+			List.Clear();
 			GetTree().Quit();
 		}
+	}
+	
+	public static bool IsMobile() {
+		return OS.GetName() == "Android";
 	}
 
 	public static void ShowDetails(Task task) {

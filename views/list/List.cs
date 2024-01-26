@@ -1,8 +1,12 @@
+using System.Collections.Generic;
 using System.Linq;
 using Godot;
 
 public partial class List : TaskView {
-	private static int _focusedId;
+	private static int _focusedId = -1;
+	private static bool _hasFocusedTaskChildren;
+	private static bool _shouldScroll;
+	private static Dictionary<int, ListTask> _taskNodeById = new();
 	private bool _isNested;
 	private int _rootId;
 	private PackedScene _listScene;
@@ -10,7 +14,19 @@ public partial class List : TaskView {
 	private Control _taskList;
 
 	public static void FocusTask(int taskId) {
+		if (_focusedId == taskId) {
+			return;
+		}
+		if (_focusedId > 0 && !_hasFocusedTaskChildren) {
+			App.Tasks[_focusedId].Expanded = false;
+		}
 		_focusedId = taskId;
+	}
+	
+	public static void Clear() {
+		foreach (var taskNode in _taskNodeById.Values) {
+			taskNode.QueueFree();
+		}
 	}
 
 	public override void _Ready() {
@@ -27,21 +43,33 @@ public partial class List : TaskView {
 	}
 
 	public override async void Render() {
-		foreach (var child in _taskList.GetChildren()) {
-			child.QueueFree();
-		}
 		if (!_isNested) {
+			_hasFocusedTaskChildren = false;
+			var hiddenTasks = GetNode<Control>("%HiddenTasks");
+			foreach (var taskNode in _taskNodeById.Values) {
+				taskNode.Reparent(hiddenTasks);
+			}
+			foreach (var child in _taskList.GetChildren()) {
+				child.QueueFree();
+			}
 			GetNode<Control>("%Spacer").Hide();
 			_rootId = (Organizer.RootId == 0 ? 0 : App.Tasks[Organizer.RootId].Parent);
+		} else if (App.Tasks[_rootId].IsFolder) {
+			GetNode<Control>("%Spacer").CustomMinimumSize /= 2;
 		}
-		
+
 		Organizer.Organize();
 		var tasks = Organizer.Tasks.Where(task => task.Parent == _rootId).ToList();
 		foreach (var task in tasks) {
-			var taskNode = _taskScene.Instantiate<ListTask>();
-			taskNode.SetTask(task);
-			_taskList.AddChild(taskNode);
+			if (!_taskNodeById.TryGetValue(task.Id, out var taskNode)) {
+				taskNode = _taskScene.Instantiate<ListTask>();
+				_taskNodeById.Add(task.Id, taskNode);
+				_taskList.AddChild(taskNode);
+			} else {
+				taskNode.Reparent(_taskList);
+			}
 			
+			taskNode.SetTask(task);
 			if (!task.Expanded) {
 				continue;
 			}
@@ -51,13 +79,20 @@ public partial class List : TaskView {
 			sublist._isNested = true;
 			_taskList.AddChild(sublist);
 		}
-		
+
 		await ToSignal(GetTree(), SceneTree.SignalName.ProcessFrame);
 		if (_focusedId == _rootId) {
+			_hasFocusedTaskChildren = (tasks.Count > 0);
 			var newTaskText = GetNode<Control>("%NewTaskText");
-			newTaskText.GrabFocus();
-			App.ScrollTo(newTaskText);
-		} else if (tasks.Count == 0 && _isNested) {
+			var isNewTaskTextVisible = App.Rect.Intersects(newTaskText.GetGlobalRect());
+			if (!App.IsMobile() && isNewTaskTextVisible) {
+				newTaskText.GrabFocus();
+			}
+			if (_shouldScroll) {
+				_shouldScroll = false;
+				App.ScrollTo(newTaskText);
+			}
+		} else if (_isNested && tasks.Count == 0) {
 			Hide();
 		} else if (_isNested) {
 			GetNode<Control>("%NewTask").Hide();
@@ -73,7 +108,8 @@ public partial class List : TaskView {
 			return;
 		}
 
-		_focusedId = _rootId;
+		FocusTask(_rootId);
+		_shouldScroll = true;
 		var task = Task.Create(text, _rootId);
 		task.Save();
 	}

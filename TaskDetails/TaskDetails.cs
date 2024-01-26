@@ -1,4 +1,5 @@
 using System;
+using System.Globalization;
 using System.Linq;
 using Godot;
 
@@ -35,18 +36,18 @@ public partial class TaskDetails : Control {
 		if (App.View is not List) {
 			GetNode<Button>("%SetAsRoot").Hide();
 		}
+
+		GetNode<Label>("%Id").Text = "ID: " + task.Id;
 		
 		var text = task.Text;
-		if (task.Completed != DateTime.MinValue) {
-			text = "[s]" + text + "[/s]";
+		if (task.IsFolder) {
+			text = "[b]" + text + "[/b]";
 		}
-		var textLabel = GetNode<ImprovedRichTextLabel>("%Text");
-		textLabel.Clear();
-		textLabel.AppendText(text);
-		
-		var descriptionLabel = GetNode<ImprovedRichTextLabel>("%Description");
-		descriptionLabel.Clear();
-		descriptionLabel.AppendText(task.Description);
+		if (task.Completed != DateTime.MinValue) {
+			text = "[s][i]" + text + "[/i][/s]";
+		}
+		GetNode<ImprovedRichTextLabel>("%Text").SetText(text);
+		GetNode<ImprovedRichTextLabel>("%Description").SetText(task.Description);
 	}
 
 	private void HideTask() {
@@ -70,7 +71,7 @@ public partial class TaskDetails : Control {
 	}
 	
 	private void CompleteTask() {
-		_task.Completed = (_task.Completed == DateTime.MinValue ? DateTime.Now : DateTime.MinValue);
+		_task.Completed = (_task.Completed == DateTime.MinValue ? DateTime.Now.ToUniversalTime() : DateTime.MinValue);
 		_task.Save();
 		ShowTask(_task);
 	}
@@ -90,7 +91,11 @@ public partial class TaskDetails : Control {
 			
 			switch (child) {
 				case LineEdit lineEdit:
-					lineEdit.Text = value.ToString();
+					if (value is DateTime date) {
+						lineEdit.Text = date.ToLocalTime().ToString();
+					} else {
+						lineEdit.Text = value.ToString();
+					}
 					break;
 				case TextEdit textEdit:
 					textEdit.Text = value.ToString();
@@ -118,11 +123,15 @@ public partial class TaskDetails : Control {
 			
 			switch (child) {
 				case LineEdit lineEdit:
+					var text = lineEdit.Text;
 					if (property.FieldType == typeof(int)) {
-						int.TryParse(lineEdit.Text, out var number);
+						int.TryParse(text, out var number);
 						property.SetValue(_task, number);
+					} else if (property.FieldType == typeof(DateTime)) {
+						var date = DateTime.Parse(text, CultureInfo.CurrentCulture, DateTimeStyles.AssumeLocal);
+						property.SetValue(_task, date.ToUniversalTime());
 					} else {
-						property.SetValue(_task, lineEdit.Text);
+						property.SetValue(_task, text);
 					}
 					break;
 				case TextEdit textEdit:

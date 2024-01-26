@@ -1,7 +1,6 @@
-[gd_scene load_steps=7 format=3 uid="uid://bjb5h6c5d6tlu"]
+[gd_scene load_steps=6 format=3 uid="uid://bjb5h6c5d6tlu"]
 
 [ext_resource type="Script" path="res://TaskDetails/TaskDetails.cs" id="1_04yaj"]
-[ext_resource type="FontFile" uid="uid://bjswefwewxc3c" path="res://fonts/verdanab.ttf" id="2_mq8l4"]
 [ext_resource type="Script" path="res://scripts/ImprovedRichTextLabel.cs" id="3_an06n"]
 [ext_resource type="Script" path="res://TaskDetails/ImprovedTextEdit.cs" id="3_ybv28"]
 [ext_resource type="Script" path="res://TaskDetails/Numeric.cs" id="4_57bjy"]
@@ -92,13 +91,19 @@ text = "×"
 custom_minimum_size = Vector2(5, 0)
 layout_mode = 2
 
-[node name="Text" type="RichTextLabel" parent="TaskDetailsContainer/PanelContainer/TaskDetailsShowing/HBoxContainer"]
+[node name="Id" type="Label" parent="TaskDetailsContainer/PanelContainer/TaskDetailsShowing/HBoxContainer"]
+unique_name_in_owner = true
+layout_mode = 2
+
+[node name="Text" type="RichTextLabel" parent="TaskDetailsContainer/PanelContainer/TaskDetailsShowing"]
 unique_name_in_owner = true
 layout_mode = 2
 size_flags_horizontal = 3
 focus_mode = 2
-theme_override_fonts/normal_font = ExtResource("2_mq8l4")
 theme_override_font_sizes/normal_font_size = 32
+theme_override_font_sizes/bold_font_size = 32
+theme_override_font_sizes/italics_font_size = 32
+theme_override_font_sizes/bold_italics_font_size = 32
 bbcode_enabled = true
 fit_content = true
 selection_enabled = true
@@ -135,6 +140,21 @@ text = "Description: "
 custom_minimum_size = Vector2(0, 100)
 layout_mode = 2
 script = ExtResource("3_ybv28")
+
+[node name="ParentLabel" type="Label" parent="TaskDetailsContainer/PanelContainer/TaskDetailsEditing"]
+layout_mode = 2
+text = "Parent: "
+
+[node name="Parent" type="LineEdit" parent="TaskDetailsContainer/PanelContainer/TaskDetailsEditing"]
+layout_mode = 2
+script = ExtResource("4_57bjy")
+
+[node name="DateLabel" type="Label" parent="TaskDetailsContainer/PanelContainer/TaskDetailsEditing"]
+layout_mode = 2
+text = "Date: "
+
+[node name="Date" type="LineEdit" parent="TaskDetailsContainer/PanelContainer/TaskDetailsEditing"]
+layout_mode = 2
 
 [node name="PointsLabel" type="Label" parent="TaskDetailsContainer/PanelContainer/TaskDetailsEditing"]
 layout_mode = 2

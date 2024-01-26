@@ -28,12 +28,14 @@ grow_vertical = 2
 script = ExtResource("1_rcshf")
 
 [node name="Complete" type="Button" parent="."]
-custom_minimum_size = Vector2(25, 32)
+unique_name_in_owner = true
+custom_minimum_size = Vector2(25, 35)
 layout_mode = 2
 size_flags_vertical = 0
 text = "✓"
 
 [node name="Spacer" type="Control" parent="."]
+unique_name_in_owner = true
 custom_minimum_size = Vector2(5, 0)
 layout_mode = 2
 
@@ -50,10 +52,9 @@ script = ExtResource("2_tymi1")
 
 [node name="Expand" type="Button" parent="."]
 unique_name_in_owner = true
-custom_minimum_size = Vector2(32, 32)
+custom_minimum_size = Vector2(32, 40)
 layout_mode = 2
 size_flags_vertical = 0
-text = "🠖"
 
 [connection signal="pressed" from="Complete" to="." method="CompleteTask"]
 [connection signal="gui_input" from="Text" to="." method="OpenTask"]

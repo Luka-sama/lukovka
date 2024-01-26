@@ -20,4 +20,8 @@ public class Filter {
 		}
 		return IsChildOfRoot(App.Tasks[task.Parent]);
 	}
+
+	public static bool NotCompleted(Task task) {
+		return task.Completed == DateTime.MinValue;
+	}
 }
