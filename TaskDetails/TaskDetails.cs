@@ -1,6 +1,7 @@
 using System;
 using System.Globalization;
 using System.Linq;
+using System.Reflection;
 using Godot;
 
 public partial class TaskDetails : Control {
@@ -20,7 +21,12 @@ public partial class TaskDetails : Control {
 	public override void _UnhandledInput(InputEvent @event) {
 		if (@event is InputEventMouseButton click && click.IsPressed() &&
 			!_panel.GetGlobalRect().HasPoint(click.GlobalPosition)) {
-			HideTask();
+			if (GetNode<Control>("%TaskDetailsEditing").Visible && SaveOrTestTask(true)) {
+				var confirmClose = GetNode<ConfirmationDialog>("%ConfirmClose");
+				confirmClose.PopupCentered();
+			} else {
+				HideTask();
+			}
 		}
 	}
 
@@ -38,7 +44,7 @@ public partial class TaskDetails : Control {
 		}
 
 		GetNode<Label>("%Id").Text = "ID: " + task.Id;
-		
+
 		var text = task.Text;
 		if (task.IsFolder) {
 			text = "[b]" + text + "[/b]";
@@ -60,14 +66,12 @@ public partial class TaskDetails : Control {
 	}
 	
 	private void SetAsRoot() {
-		Organizer.RootId = (Organizer.RootId == _task.Id ? 0 : _task.Id);
+		Organizer.State.RootId = (Organizer.State.RootId == _task.Id ? 0 : _task.Id);
+		if (Organizer.State.RootId == 0 || App.Tasks[Organizer.State.RootId].Parent == 0) {
+			Organizer.RemoveFilter("NoRootTaskParent");
+		}
 		App.View.Render();
 		HideTask();
-		/*if (App.View is List list) {
-			list.RootId = (list.RootId == _task.Id ? 0 : _task.Id);
-			App.View.Render();
-			HideTask();
-		}*/
 	}
 	
 	private void CompleteTask() {
@@ -92,7 +96,7 @@ public partial class TaskDetails : Control {
 			switch (child) {
 				case LineEdit lineEdit:
 					if (value is DateTime date) {
-						lineEdit.Text = date.ToLocalTime().ToString();
+						lineEdit.Text = date.ToLocalTime().ToString(CultureInfo.CurrentCulture);
 					} else {
 						lineEdit.Text = value.ToString();
 					}
@@ -107,14 +111,26 @@ public partial class TaskDetails : Control {
 		}
 	}
 
+	private void ConfirmDelete() {
+		var childrenCount = _task.CountChildren();
+		var confirmDelete = GetNode<ConfirmationDialog>("%ConfirmDelete");
+		confirmDelete.PopupCentered();
+		confirmDelete.DialogText = "Delete task" + (childrenCount > 0 ? " with " + childrenCount + " children" : "") + "?";
+	}
+
 	private void DeleteTask() {
 		_task.Delete();
 		HideTask();
 	}
 
 	private void SaveTask() {
+		SaveOrTestTask();
+	}
+
+	private bool SaveOrTestTask(bool onlyTest = false) {
 		var form = GetNode<Control>("%TaskDetailsEditing");
-		
+		var hasChanged = false;
+		var oldParent = _task.Parent;
 		foreach (var child in form.GetChildren()) {
 			if (child is Label) {
 				continue;
@@ -126,25 +142,44 @@ public partial class TaskDetails : Control {
 					var text = lineEdit.Text;
 					if (property.FieldType == typeof(int)) {
 						int.TryParse(text, out var number);
-						property.SetValue(_task, number);
+						hasChanged = hasChanged || SetValue(property, number, onlyTest);
 					} else if (property.FieldType == typeof(DateTime)) {
-						var date = DateTime.Parse(text, CultureInfo.CurrentCulture, DateTimeStyles.AssumeLocal);
-						property.SetValue(_task, date.ToUniversalTime());
+						var date = DateTime
+							.Parse(text, CultureInfo.CurrentCulture, DateTimeStyles.AssumeLocal)
+							.ToUniversalTime();
+						hasChanged = hasChanged || SetValue(property, date, onlyTest);
 					} else {
-						property.SetValue(_task, text);
+						hasChanged = hasChanged || SetValue(property, text, onlyTest);
 					}
 					break;
 				case TextEdit textEdit:
-					property.SetValue(_task, textEdit.Text);
+					hasChanged = hasChanged || SetValue(property, textEdit.Text, onlyTest);
 					break;
 				case CheckBox checkBox:
-					property.SetValue(_task, checkBox.ButtonPressed);
+					hasChanged = hasChanged || SetValue(property, checkBox.ButtonPressed, onlyTest);
 					break;
 			}
 		}
-		
-		_task.Save();
-		ShowTask(_task);
+
+		if (!onlyTest) {
+			if (_task.Parent != oldParent) {
+				App.Tasks[oldParent].Children.Remove(_task);
+				App.Tasks[_task.Parent].Children.Add(_task);
+			}
+			_task.Save();
+			ShowTask(_task);
+		}
+		return hasChanged;
+	}
+
+	private bool SetValue(FieldInfo property, object value, bool onlyTest) {
+		if (property.GetValue(_task)!.Equals(value)) {
+			return false;
+		}
+		if (!onlyTest) {
+			property.SetValue(_task, value);
+		}
+		return true;
 	}
 
 	private void SubmittedTask(string _) {

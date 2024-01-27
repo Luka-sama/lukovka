@@ -1,9 +1,12 @@
-[gd_scene load_steps=5 format=3 uid="uid://ct3b33bysfx16"]
+[gd_scene load_steps=8 format=3 uid="uid://ct3b33bysfx16"]
 
 [ext_resource type="Theme" uid="uid://dpcikkauvgp38" path="res://theme/theme.tres" id="1_e27dq"]
 [ext_resource type="Script" path="res://App/App.cs" id="2_0260a"]
+[ext_resource type="PackedScene" uid="uid://dtdied0lur2jk" path="res://Organizer/Organizer.tscn" id="3_0facv"]
+[ext_resource type="Script" path="res://scripts/ImprovedScrollContainer.cs" id="3_6h4pu"]
 [ext_resource type="PackedScene" uid="uid://tuck2brej4xl" path="res://views/list/List.tscn" id="3_j3uqi"]
 [ext_resource type="PackedScene" uid="uid://bjb5h6c5d6tlu" path="res://TaskDetails/TaskDetails.tscn" id="4_lm3yq"]
+[ext_resource type="Theme" uid="uid://cbr8y81ahw8w7" path="res://theme/dialog.tres" id="6_oqo0e"]
 
 [node name="App" type="Control"]
 process_mode = 3
@@ -34,13 +37,34 @@ size_flags_vertical = 3
 follow_focus = true
 horizontal_scroll_mode = 3
 vertical_scroll_mode = 3
+script = ExtResource("3_6h4pu")
 
-[node name="View" parent="MarginContainer/ScrollContainer" instance=ExtResource("3_j3uqi")]
+[node name="VBoxContainer" type="VBoxContainer" parent="MarginContainer/ScrollContainer"]
+layout_mode = 2
+size_flags_horizontal = 3
+size_flags_vertical = 3
+
+[node name="Organizer" parent="MarginContainer/ScrollContainer/VBoxContainer" instance=ExtResource("3_0facv")]
+layout_mode = 2
+
+[node name="Spacer" type="Control" parent="MarginContainer/ScrollContainer/VBoxContainer"]
+custom_minimum_size = Vector2(0, 7)
+layout_mode = 2
+
+[node name="View" parent="MarginContainer/ScrollContainer/VBoxContainer" instance=ExtResource("3_j3uqi")]
 unique_name_in_owner = true
 process_mode = 1
 layout_mode = 2
+size_flags_horizontal = 1
+size_flags_vertical = 1
 
 [node name="TaskDetails" parent="." instance=ExtResource("4_lm3yq")]
 unique_name_in_owner = true
 visible = false
 layout_mode = 1
+
+[node name="Error" type="AcceptDialog" parent="."]
+unique_name_in_owner = true
+title = "Error"
+size = Vector2i(300, 100)
+theme = ExtResource("6_oqo0e")

@@ -1,4 +1,4 @@
-[gd_resource type="Theme" load_steps=8 format=3 uid="uid://dpcikkauvgp38"]
+[gd_resource type="Theme" load_steps=9 format=3 uid="uid://dpcikkauvgp38"]
 
 [ext_resource type="StyleBox" uid="uid://0foglqilwuha" path="res://theme/button_active.tres" id="1_dm17p"]
 [ext_resource type="FontFile" uid="uid://d4c74lq2q3xew" path="res://fonts/verdana.ttf" id="1_imi0v"]
@@ -7,11 +7,19 @@
 [ext_resource type="FontFile" uid="uid://ceracbvw2lgq3" path="res://fonts/verdanabi.ttf" id="2_ojem3"]
 [ext_resource type="FontFile" uid="uid://b3ybe4t8iin0i" path="res://fonts/verdanai.ttf" id="3_kv7hy"]
 
+[sub_resource type="StyleBoxFlat" id="StyleBoxFlat_raidr"]
+content_margin_left = 5.0
+content_margin_top = 5.0
+content_margin_right = 5.0
+content_margin_bottom = 5.0
+bg_color = Color(0.25098, 0.25098, 0.25098, 1)
+
 [sub_resource type="StyleBoxEmpty" id="StyleBoxEmpty_du3tu"]
 
 [resource]
 default_font = ExtResource("1_imi0v")
 default_font_size = 20
+AcceptDialog/styles/panel = SubResource("StyleBoxFlat_raidr")
 Button/styles/focus = ExtResource("1_lbhnh")
 Button/styles/hover = ExtResource("1_dm17p")
 Button/styles/normal = ExtResource("1_lbhnh")

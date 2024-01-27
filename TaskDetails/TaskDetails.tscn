@@ -1,9 +1,10 @@
-[gd_scene load_steps=6 format=3 uid="uid://bjb5h6c5d6tlu"]
+[gd_scene load_steps=7 format=3 uid="uid://bjb5h6c5d6tlu"]
 
 [ext_resource type="Script" path="res://TaskDetails/TaskDetails.cs" id="1_04yaj"]
 [ext_resource type="Script" path="res://scripts/ImprovedRichTextLabel.cs" id="3_an06n"]
 [ext_resource type="Script" path="res://TaskDetails/ImprovedTextEdit.cs" id="3_ybv28"]
 [ext_resource type="Script" path="res://TaskDetails/Numeric.cs" id="4_57bjy"]
+[ext_resource type="Theme" uid="uid://cbr8y81ahw8w7" path="res://theme/dialog.tres" id="5_qn6up"]
 
 [sub_resource type="StyleBoxFlat" id="StyleBoxFlat_1q46n"]
 content_margin_left = 10.0
@@ -183,8 +184,25 @@ layout_mode = 2
 size_flags_horizontal = 0
 text = "Save task"
 
+[node name="ConfirmDelete" type="ConfirmationDialog" parent="."]
+unique_name_in_owner = true
+title = "Confirm"
+size = Vector2i(300, 100)
+theme = ExtResource("5_qn6up")
+dialog_close_on_escape = false
+
+[node name="ConfirmClose" type="ConfirmationDialog" parent="."]
+unique_name_in_owner = true
+title = "Confirm"
+size = Vector2i(300, 100)
+theme = ExtResource("5_qn6up")
+dialog_text = "Close without saving?"
+dialog_close_on_escape = false
+
 [connection signal="pressed" from="TaskDetailsContainer/PanelContainer/TaskDetailsShowing/HBoxContainer/SetAsRoot" to="." method="SetAsRoot"]
 [connection signal="pressed" from="TaskDetailsContainer/PanelContainer/TaskDetailsShowing/HBoxContainer/Complete" to="." method="CompleteTask"]
 [connection signal="pressed" from="TaskDetailsContainer/PanelContainer/TaskDetailsShowing/HBoxContainer/Edit" to="." method="EditTask"]
-[connection signal="pressed" from="TaskDetailsContainer/PanelContainer/TaskDetailsShowing/HBoxContainer/Delete" to="." method="DeleteTask"]
+[connection signal="pressed" from="TaskDetailsContainer/PanelContainer/TaskDetailsShowing/HBoxContainer/Delete" to="." method="ConfirmDelete"]
 [connection signal="pressed" from="TaskDetailsContainer/PanelContainer/TaskDetailsEditing/SaveTask" to="." method="SaveTask"]
+[connection signal="confirmed" from="ConfirmDelete" to="." method="DeleteTask"]
+[connection signal="confirmed" from="ConfirmClose" to="." method="HideTask"]

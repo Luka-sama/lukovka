@@ -6,7 +6,7 @@ public partial class List : TaskView {
 	private static int _focusedId = -1;
 	private static bool _hasFocusedTaskChildren;
 	private static bool _shouldScroll;
-	private static Dictionary<int, ListTask> _taskNodeById = new();
+	private static readonly Dictionary<int, ListTask> _taskNodeById = new();
 	private bool _isNested;
 	private int _rootId;
 	private PackedScene _listScene;
@@ -53,13 +53,21 @@ public partial class List : TaskView {
 				child.QueueFree();
 			}
 			GetNode<Control>("%Spacer").Hide();
-			_rootId = (Organizer.RootId == 0 ? 0 : App.Tasks[Organizer.RootId].Parent);
+			
+			Organizer.Organize();
+			if (Organizer.HasFilter("NoRootTaskParent")) {
+				_rootId = (Organizer.State.RootId == 0 ? 0 : App.Tasks[Organizer.State.RootId].Parent);
+			} else {
+				_rootId = 0;
+			}
 		} else if (App.Tasks[_rootId].IsFolder) {
 			GetNode<Control>("%Spacer").CustomMinimumSize /= 2;
 		}
-
-		Organizer.Organize();
-		var tasks = Organizer.Tasks.Where(task => task.Parent == _rootId).ToList();
+		
+		var tasks = Organizer.Tasks;
+		if (!Organizer.HasFilter("NoHierarchy")) {
+			tasks = tasks.Where(task => task.Parent == _rootId).ToList();
+		}
 		foreach (var task in tasks) {
 			if (!_taskNodeById.TryGetValue(task.Id, out var taskNode)) {
 				taskNode = _taskScene.Instantiate<ListTask>();
@@ -94,7 +102,7 @@ public partial class List : TaskView {
 			}
 		} else if (_isNested && tasks.Count == 0) {
 			Hide();
-		} else if (_isNested) {
+		} else if (_isNested || Organizer.State.RootId != 0) {
 			GetNode<Control>("%NewTask").Hide();
 		}
 	}

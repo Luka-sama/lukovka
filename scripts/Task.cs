@@ -8,6 +8,7 @@ using Newtonsoft.Json;
 public class Task {
 	public static int NextId { get; set; } = 1;
 	[JsonIgnore] public bool Expanded;
+	[JsonIgnore] public List<Task> Children = new();
 	public int Id;
 	[DefaultValue("")] public string Text = "";
 	public DateTime Created;
@@ -31,8 +32,15 @@ public class Task {
 			Updated = DateTime.Now.ToUniversalTime(),
 			Parent = parent,
 		};
+		if (parent > 0) {
+			App.Tasks[parent].Children.Add(task);
+		}
 		NextId++;
 		return task;
+	}
+
+	public int CountChildren() {
+		return Children.Sum(child => 1 + child.CountChildren());
 	}
 
 	public void Save() {
@@ -46,16 +54,21 @@ public class Task {
 	}
 
 	public void Delete() {
-		NextId = (Id + 1 == NextId ? Id : NextId);
-		App.Tasks.Remove(Id);
-		App.Request(HttpClient.Method.Delete, Id.ToString());
-
-		var children = App.Tasks.Values.Where(child => child.Parent == Id).ToList();
-		if (children.Count < 1) {
-			App.View.Render();
+		var tasksToDelete = GetChildrenIds(this);
+		tasksToDelete.Add(Id);
+		foreach (var taskId in tasksToDelete) {
+			App.Tasks.Remove(taskId);
 		}
-		foreach (var child in children) {
-			child.Delete();
+		App.View.Render();
+		var idsAsString = string.Join("\n", tasksToDelete);
+		App.Request(HttpClient.Method.Delete, idsAsString);
+	}
+	
+	private static List<int> GetChildrenIds(Task parent) {
+		var result = parent.Children.Select(task => task.Id).ToList();
+		foreach (var child in parent.Children) {
+			result.AddRange(GetChildrenIds(child));
 		}
+		return result;
 	}
 }

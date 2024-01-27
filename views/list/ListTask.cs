@@ -23,12 +23,17 @@ public partial class ListTask : Control {
 		if (!string.IsNullOrEmpty(task.Description)) {
 			text += " [color=#EEEEEE]≡[/color]";
 		}
-		GetNode<ImprovedRichTextLabel>("%Text").SetText(text);
+		var textNode = GetNode<ImprovedRichTextLabel>("%Text");
+		textNode.SetText(text);
+		textNode.SelectionEnabled = !App.IsMobile();
 
 		var expandButton = GetNode<Button>("%Expand");
-		if (task.Expanded) {
+		expandButton.Show();
+		if (Organizer.HasFilter("NoHierarchy")) {
+			expandButton.Hide();
+		} else if (task.Expanded) {
 			expandButton.Text = "↓";
-		} else if (App.Tasks.Values.All(task2 => task2.Parent != task.Id)) {
+		} else if (task.Children.Count < 1) {
 			expandButton.Text = "+";
 		} else {
 			expandButton.Text = "→";
@@ -47,6 +52,11 @@ public partial class ListTask : Control {
 	}
 
 	private void ExpandTask() {
+		if (Organizer.HasFilter("NoHierarchy")) {
+			App.ShowError("You can't expand a task with no hierarchy.");
+			return;
+		}
+		
 		_task.Expanded = !_task.Expanded;
 		if (App.View is List) {
 			List.FocusTask(_task.Expanded && _task.Id > 0 ? _task.Id : 0);

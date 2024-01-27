@@ -1,0 +1,65 @@
+[gd_scene load_steps=3 format=3 uid="uid://dtdied0lur2jk"]
+
+[ext_resource type="Script" path="res://Organizer/Organizer.cs" id="1_cnsyy"]
+[ext_resource type="Theme" uid="uid://cbr8y81ahw8w7" path="res://theme/dialog.tres" id="2_r7qcf"]
+
+[node name="Organizer" type="VBoxContainer"]
+anchors_preset = 10
+anchor_right = 1.0
+offset_bottom = 35.0
+grow_horizontal = 2
+script = ExtResource("1_cnsyy")
+
+[node name="States" type="HFlowContainer" parent="."]
+unique_name_in_owner = true
+layout_mode = 2
+
+[node name="AddState" type="Button" parent="States"]
+layout_mode = 2
+text = "+"
+
+[node name="StateManager" type="HFlowContainer" parent="."]
+unique_name_in_owner = true
+layout_mode = 2
+
+[node name="Expand" type="Button" parent="StateManager"]
+unique_name_in_owner = true
+layout_mode = 2
+text = "Expand"
+
+[node name="Sort" type="OptionButton" parent="StateManager"]
+unique_name_in_owner = true
+layout_mode = 2
+allow_reselect = true
+
+[node name="AddFilter" type="MenuButton" parent="StateManager"]
+unique_name_in_owner = true
+layout_mode = 2
+text = "+"
+flat = false
+
+[node name="ConfirmStateDelete" type="ConfirmationDialog" parent="."]
+unique_name_in_owner = true
+title = "Confirm"
+size = Vector2i(300, 100)
+theme = ExtResource("2_r7qcf")
+
+[node name="EnterStateName" type="ConfirmationDialog" parent="."]
+unique_name_in_owner = true
+title = "Enter the state name"
+size = Vector2i(300, 100)
+theme = ExtResource("2_r7qcf")
+
+[node name="StateName" type="LineEdit" parent="EnterStateName"]
+unique_name_in_owner = true
+offset_left = 8.0
+offset_top = 8.0
+offset_right = 292.0
+offset_bottom = 51.0
+
+[connection signal="pressed" from="States/AddState" to="." method="AskStateName"]
+[connection signal="pressed" from="StateManager/Expand" to="." method="ExpandTasks"]
+[connection signal="item_selected" from="StateManager/Sort" to="." method="ChangeSort"]
+[connection signal="confirmed" from="ConfirmStateDelete" to="." method="RemoveState"]
+[connection signal="confirmed" from="EnterStateName" to="." method="AddState"]
+[connection signal="text_submitted" from="EnterStateName/StateName" to="." method="StateNameSubmitted"]
