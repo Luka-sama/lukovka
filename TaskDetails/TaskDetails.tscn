@@ -96,6 +96,18 @@ layout_mode = 2
 unique_name_in_owner = true
 layout_mode = 2
 
+[node name="Info" type="RichTextLabel" parent="TaskDetailsContainer/PanelContainer/TaskDetailsShowing"]
+unique_name_in_owner = true
+layout_mode = 2
+focus_mode = 2
+bbcode_enabled = true
+fit_content = true
+selection_enabled = true
+
+[node name="ProgressBar" type="ProgressBar" parent="TaskDetailsContainer/PanelContainer/TaskDetailsShowing"]
+unique_name_in_owner = true
+layout_mode = 2
+
 [node name="Text" type="RichTextLabel" parent="TaskDetailsContainer/PanelContainer/TaskDetailsShowing"]
 unique_name_in_owner = true
 layout_mode = 2
@@ -147,7 +159,9 @@ layout_mode = 2
 text = "Parent: "
 
 [node name="Parent" type="LineEdit" parent="TaskDetailsContainer/PanelContainer/TaskDetailsEditing"]
+custom_minimum_size = Vector2(100, 0)
 layout_mode = 2
+size_flags_horizontal = 0
 script = ExtResource("4_57bjy")
 
 [node name="DateLabel" type="Label" parent="TaskDetailsContainer/PanelContainer/TaskDetailsEditing"]
@@ -164,12 +178,21 @@ text = "Start date: "
 [node name="StartDate" type="LineEdit" parent="TaskDetailsContainer/PanelContainer/TaskDetailsEditing"]
 layout_mode = 2
 
+[node name="CompletedLabel" type="Label" parent="TaskDetailsContainer/PanelContainer/TaskDetailsEditing"]
+layout_mode = 2
+text = "Completed: "
+
+[node name="Completed" type="LineEdit" parent="TaskDetailsContainer/PanelContainer/TaskDetailsEditing"]
+layout_mode = 2
+
 [node name="RepeatingEveryLabel" type="Label" parent="TaskDetailsContainer/PanelContainer/TaskDetailsEditing"]
 layout_mode = 2
 text = "Repeating every: "
 
 [node name="RepeatingEvery" type="LineEdit" parent="TaskDetailsContainer/PanelContainer/TaskDetailsEditing"]
+custom_minimum_size = Vector2(100, 0)
 layout_mode = 2
+size_flags_horizontal = 0
 script = ExtResource("4_57bjy")
 
 [node name="RepeatingIntervalLabel" type="Label" parent="TaskDetailsContainer/PanelContainer/TaskDetailsEditing"]
@@ -177,7 +200,9 @@ layout_mode = 2
 text = "Repeating interval: "
 
 [node name="RepeatingInterval" type="LineEdit" parent="TaskDetailsContainer/PanelContainer/TaskDetailsEditing"]
+custom_minimum_size = Vector2(100, 0)
 layout_mode = 2
+size_flags_horizontal = 0
 script = ExtResource("4_57bjy")
 MinValue = 0
 MaxValue = 5
@@ -188,6 +213,16 @@ text = "From completed:"
 
 [node name="RepeatingFromCompleted" type="CheckBox" parent="TaskDetailsContainer/PanelContainer/TaskDetailsEditing"]
 layout_mode = 2
+
+[node name="PriorityLabel" type="Label" parent="TaskDetailsContainer/PanelContainer/TaskDetailsEditing"]
+layout_mode = 2
+text = "Priority: "
+
+[node name="Priority" type="LineEdit" parent="TaskDetailsContainer/PanelContainer/TaskDetailsEditing"]
+custom_minimum_size = Vector2(100, 0)
+layout_mode = 2
+size_flags_horizontal = 0
+script = ExtResource("4_57bjy")
 
 [node name="PointsLabel" type="Label" parent="TaskDetailsContainer/PanelContainer/TaskDetailsEditing"]
 layout_mode = 2
@@ -200,6 +235,16 @@ size_flags_horizontal = 0
 script = ExtResource("4_57bjy")
 MinValue = 0
 
+[node name="PointsDoneLabel" type="Label" parent="TaskDetailsContainer/PanelContainer/TaskDetailsEditing"]
+layout_mode = 2
+text = "Points done: "
+
+[node name="PointsDone" type="LineEdit" parent="TaskDetailsContainer/PanelContainer/TaskDetailsEditing"]
+custom_minimum_size = Vector2(100, 0)
+layout_mode = 2
+size_flags_horizontal = 0
+script = ExtResource("4_57bjy")
+
 [node name="IsFolderLabel" type="Label" parent="TaskDetailsContainer/PanelContainer/TaskDetailsEditing"]
 layout_mode = 2
 text = "Is folder: "
@@ -207,6 +252,13 @@ text = "Is folder: "
 [node name="IsFolder" type="CheckBox" parent="TaskDetailsContainer/PanelContainer/TaskDetailsEditing"]
 layout_mode = 2
 size_flags_horizontal = 0
+
+[node name="TagsLabel" type="Label" parent="TaskDetailsContainer/PanelContainer/TaskDetailsEditing"]
+layout_mode = 2
+text = "Tags: "
+
+[node name="Tags" type="LineEdit" parent="TaskDetailsContainer/PanelContainer/TaskDetailsEditing"]
+layout_mode = 2
 
 [node name="Control" type="Control" parent="TaskDetailsContainer/PanelContainer/TaskDetailsEditing"]
 layout_mode = 2

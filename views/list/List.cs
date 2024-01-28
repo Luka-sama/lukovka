@@ -112,6 +112,8 @@ public partial class List : TaskView {
 			Hide();
 		} else if (_isNested || Organizer.State.RootId != 0 || Organizer.State.GroupBy != -1) {
 			GetNode<Control>("%NewTask").Hide();
+		} else {
+			GetNode<Control>("%NewTask").Show();
 		}
 	}
 
@@ -132,8 +134,7 @@ public partial class List : TaskView {
 
 		FocusTask(_rootId);
 		_shouldScroll = true;
-		var task = Task.Create(text, _rootId);
-		task.Save();
+		Task.Create(text, _rootId);
 	}
 
 	private void SubmittedTask(string _) {

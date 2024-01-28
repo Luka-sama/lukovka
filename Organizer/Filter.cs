@@ -32,6 +32,14 @@ public static class Filter {
 	public static bool NoTasksWithChildren(Task task) {
 		return task.Children.Count < 1;
 	}
+
+	public static bool WithTagTermin(Task task) {
+		return task.Tags?.Contains("termin") ?? false;
+	}
+	
+	public static bool WithTagPlan(Task task) {
+		return task.Tags?.Contains("plan") ?? false;
+	}
 	
 	// Pseudo-filters
 

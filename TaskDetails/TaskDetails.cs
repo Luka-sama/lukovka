@@ -1,4 +1,5 @@
 using System;
+using System.Collections.Generic;
 using System.Globalization;
 using System.Linq;
 using System.Reflection;
@@ -40,8 +41,21 @@ public partial class TaskDetails : Control {
 		if (App.View is not List) {
 			GetNode<Button>("%SetAsRoot").Hide();
 		}
-
-		GetNode<Label>("%Id").Text = "ID: " + task.Id;
+		GetNode<Label>("%Id").Text = $"ID: {task.Id}";
+		
+		var info = $"[b]Created:[/b] {task.Created.ToLocalTime()}.";
+		if (task.Updated != DateTime.MinValue && (task.Updated - task.Created).TotalSeconds >= 1) {
+			info += $" [b]Updated:[/b] {task.Updated.ToLocalTime()}.";
+		}
+		if (task.Completed != DateTime.MinValue) {
+			info += $" [b]Completed:[/b] {task.Completed.ToLocalTime()}.";
+		}
+		var infoLabel = GetNode<RichTextLabel>("%Info");
+		infoLabel.Clear();
+		infoLabel.AppendText(info);
+		
+		var progress = (double)task.CountPointsDone() / task.CountPoints() * 100;
+		GetNode<ProgressBar>("%ProgressBar").Value = progress;
 
 		var text = task.Text;
 		if (task.IsFolder) {
@@ -88,9 +102,6 @@ public partial class TaskDetails : Control {
 		var children = form.GetChildren();
 		foreach (var child in children.Where((_, index) => index % 2 == 1 && index < children.Count - 2)) {
 			var value = _task.GetType().GetField(child.Name)!.GetValue(_task);
-			if (value == null) {
-				continue;
-			}
 			
 			switch (child) {
 				case LineEdit lineEdit:
@@ -98,15 +109,17 @@ public partial class TaskDetails : Control {
 						lineEdit.Text = (
 							date != DateTime.MinValue ? date.ToLocalTime().ToString(CultureInfo.CurrentCulture) : ""
 						);
+					} else if (value is List<string> list) {
+						lineEdit.Text = string.Join(" ", list);
 					} else {
-						lineEdit.Text = value.ToString();
+						lineEdit.Text = value?.ToString();
 					}
 					break;
 				case TextEdit textEdit:
-					textEdit.Text = value.ToString();
+					textEdit.Text = value?.ToString();
 					break;
 				case CheckBox checkBox:
-					checkBox.ButtonPressed = (bool)value;
+					checkBox.ButtonPressed = (value != null && (bool)value);
 					break;
 			}
 		}
@@ -151,7 +164,15 @@ public partial class TaskDetails : Control {
 								.Parse(text, CultureInfo.CurrentCulture, DateTimeStyles.AssumeLocal)
 								.ToUniversalTime();
 						}
+
 						hasChanged = SetValue(property, date, onlyTest) || hasChanged;
+					} else if (property.FieldType == typeof(List<string>)) {
+						var list = text.Split(" ").ToList();
+						if (list.Count == 1 && list[0] == "") {
+							hasChanged = SetValue(property, null, onlyTest) || hasChanged;
+						} else {
+							hasChanged = SetValue(property, list, onlyTest) || hasChanged;
+						}
 					} else {
 						hasChanged = SetValue(property, text, onlyTest) || hasChanged;
 					}
@@ -177,7 +198,10 @@ public partial class TaskDetails : Control {
 	}
 
 	private bool SetValue(FieldInfo property, object value, bool onlyTest) {
-		if (property.GetValue(_task)!.Equals(value)) {
+		var oldValue = property.GetValue(_task);
+		if (value is List<string> newList && oldValue is List<string> oldList && oldList.SequenceEqual(newList) ||
+		    value == null && oldValue == null ||
+		    value != null && value.Equals(oldValue)) {
 			return false;
 		}
 		if (!onlyTest) {

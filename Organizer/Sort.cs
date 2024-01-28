@@ -25,6 +25,13 @@ public class Sort {
 		return ByAnyDate(a, b, a.Completed, b.Completed);
 	}
 
+	public static int ByPriority(Task a, Task b) {
+		if (a.Priority == b.Priority) {
+			return Standard(a, b);
+		}
+		return (a.Priority > b.Priority ? 1 : -1);
+	}
+
 	private static int ByAnyDate(Task a, Task b, DateTime dateA, DateTime dateB) {
 		if (dateA != DateTime.MinValue && dateB == DateTime.MinValue) {
 			return -1;

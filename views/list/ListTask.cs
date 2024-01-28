@@ -18,7 +18,7 @@ public partial class ListTask : Control {
 			}
 		}
 		if (task.IsFolder) {
-			text = "[b]" + text + "[/b]";
+			text = $"[b]{text}[/b]";
 			GetNode<Control>("%Complete").Hide();
 			GetNode<Control>("%Spacer").Hide();
 		} else {
@@ -26,10 +26,29 @@ public partial class ListTask : Control {
 			GetNode<Control>("%Spacer").Show();
 		}
 		if (task.Completed != DateTime.MinValue) {
-			text = "[s][i]" + text + "[/i][/s]";
+			text = $"[s][i]{text}[/i][/s]";
 		}
 		if (task.Date != DateTime.MinValue) {
-			text += " [b]" + DateOnly.FromDateTime(task.Date.ToLocalTime()) + "[/b]";
+			var date = task.Date.ToLocalTime();
+			if (date.Year == DateTime.Now.Year && date.Hour == 0 && date.Minute == 0 && date.Second == 0) {
+				text += $" [b]{date:dd.MM}[/b]";
+			} else if (date.Hour == 0 && date.Minute == 0 && date.Second == 0) {
+				text += $" [b]{date:dd.MM.y}[/b]";
+			} else if (date.Year == DateTime.Now.Year && date.Second == 0) {
+				text += $" [b]{date:dd.MM HH:mm}[/b]";
+			} else if (date.Second == 0) {
+				text += $" [b]{date:dd.MM.y HH:mm}[/b]";
+			} else {
+				text += $" [b]{date:dd.MM.y HH:mm:ss}[/b]";
+			}
+		}
+		if (task.Points != 0 || task.PointsDone != 0) {
+			text += $" [b][i][{task.PointsDone}/{task.Points}][/i][/b]";
+		}
+		if (task.Tags != null) {
+			foreach (var tag in task.Tags) {
+				text += $" [color=#6b578c][b][i]{tag}[/i][/b][/color]";
+			}
 		}
 		if (!string.IsNullOrEmpty(task.Description)) {
 			text += " [color=#EEEEEE]≡[/color]";

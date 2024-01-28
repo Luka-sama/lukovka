@@ -44,6 +44,7 @@ public partial class App : Control {
 			GD.PushError(text);
 		}
 		_error.DialogText = text;
+		_error.Size = new Vector2I(400, 100);
 		_error.PopupCentered();
 	}
 
