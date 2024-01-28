@@ -34,7 +34,7 @@ public partial class Organizer : Control {
 			.Where(HasFilter("NoHierarchy") ? SumFilter : WithHierarchy(SumFilter))
 			.ToList();
 		
-		var sort = AllSorts[State.SelectedSort];
+		var sort = AllSorts.First(sort => sort.Name == State.SelectedSort);
 		Tasks.Sort((a, b) => {
 			var cmp = (int)sort.Invoke(null, new object[] { a, b })!;
 			if (State.DescendingSort && cmp != 0) {
@@ -43,13 +43,13 @@ public partial class Organizer : Control {
 			return cmp;
 		});
 
-		if (State.GroupBy == -1) {
+		if (string.IsNullOrEmpty(State.GroupBy)) {
 			return;
 		}
 		var groups = new Dictionary<string, Task>();
 		var groupTasks = new List<Task>();
 		var nextId = -1;
-		var grouping = AllGroupings[State.GroupBy];
+		var grouping = AllGroupings.First(grouping => grouping.Name == State.GroupBy);
 		foreach (var task in Tasks) {
 			var group = (string)grouping.Invoke(null, new object[] { task })!;
 			if (groups.TryGetValue(group, out var groupTask)) {
@@ -83,13 +83,11 @@ public partial class Organizer : Control {
 		foreach (var sort in AllSorts) {
 			_sortMenu.AddItem(TransformCamelCase(sort.Name));
 		}
-		_sortMenu.Select(State.SelectedSort + 1);
 
 		_groupingMenu = GetNode<OptionButton>("%GroupBy");
 		foreach (var grouping in AllGroupings) {
 			_groupingMenu.AddItem(TransformCamelCase(grouping.Name));
 		}
-		_groupingMenu.Select(State.GroupBy + 1);
 
 		_filterMenu = GetNode<MenuButton>("%AddFilter").GetPopup();
 		_filterMenu.IdPressed += AddFilterByIndex;
@@ -111,7 +109,7 @@ public partial class Organizer : Control {
 		
 		if (filterName == "NoHierarchy") {
 			RemoveFilter("NoTasksWithChildren");
-			State.GroupBy = -1;
+			State.GroupBy = "";
 		}
 		
 		State.SelectedFilters.Remove(filterName);
@@ -192,17 +190,21 @@ public partial class Organizer : Control {
 	}
 
 	private static void ChangeSort(long index) {
-		var sortId = (int)index - 1;
-		if (State.SelectedSort == sortId) {
+		var sortName = AllSorts[(int)index - 1].Name;
+		if (State.SelectedSort == sortName) {
 			State.DescendingSort = !State.DescendingSort;
 		}
-		State.SelectedSort = sortId;
+		State.SelectedSort = sortName;
 		App.View.Render();
 	}
 
 	private static void ChangeGrouping(long index) {
 		AddFilter("NoHierarchy");
-		State.GroupBy = (int)index - 1;
+		var groupBy = AllGroupings[(int)index - 1].Name;
+		State.GroupBy = (State.GroupBy != groupBy ? groupBy : "");
+		if (string.IsNullOrEmpty(State.GroupBy)) {
+			_groupingMenu.Select(0);
+		}
 		App.View.Render();
 	}
 	
@@ -332,8 +334,17 @@ public partial class Organizer : Control {
 		foreach (var filterName in State.SelectedFilters) {
 			AddFilterButton(filterName);
 		}
-		_sortMenu.Select(State.SelectedSort + 1);
-		_groupingMenu.Select(State.GroupBy + 1);
+		
+		var sort = AllSorts.First(sort => sort.Name == State.SelectedSort);
+		_sortMenu.Select(Array.IndexOf(AllSorts, sort) + 1);
+		
+		if (!string.IsNullOrEmpty(State.GroupBy)) {
+			var grouping = AllGroupings.First(grouping => grouping.Name == State.GroupBy);
+			_groupingMenu.Select(Array.IndexOf(AllGroupings, grouping) + 1);
+		} else {
+			_groupingMenu.Select(0);
+		}
+		
 		ApplyExpand();
 		RegenerateFilterList();
 		UpdateStateButtons();

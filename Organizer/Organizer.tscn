@@ -40,6 +40,7 @@ popup/item_0/separator = true
 unique_name_in_owner = true
 layout_mode = 2
 item_count = 1
+allow_reselect = true
 popup/item_0/text = "Group"
 popup/item_0/id = 0
 popup/item_0/separator = true

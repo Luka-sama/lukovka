@@ -7,11 +7,11 @@ public class State {
 		Name = "⌂",
 		SelectedFilters = { "NotCompleted" },
 	};
-	public string Name;
+	public string Name { get; set; }
 	public readonly List<string> SelectedFilters = new();
-	public int GroupBy = -1;
+	public string GroupBy { get; set; } = "";
+	public string SelectedSort { get; set; } = "Standard";
 	public int RootId { get; set; }
-	public int SelectedSort { get; set; }
 	public bool DescendingSort { get; set; }
 	public bool Expanded { get; set; }
 

@@ -74,7 +74,7 @@ public partial class List : TaskView {
 		var tasks = Organizer.Tasks;
 		if (!Organizer.HasFilter("NoHierarchy")) {
 			tasks = tasks.Where(task => task.Parent == _rootId).ToList();
-		} else if (Organizer.State.GroupBy != -1) {
+		} else if (!string.IsNullOrEmpty(Organizer.State.GroupBy)) {
 			tasks = tasks.Where(task => task.Group == _rootId).ToList();
 		}
 		foreach (var task in tasks) {
@@ -110,7 +110,7 @@ public partial class List : TaskView {
 			}
 		} else if (_isNested && tasks.Count == 0) {
 			Hide();
-		} else if (_isNested || Organizer.State.RootId != 0 || Organizer.State.GroupBy != -1) {
+		} else if (_isNested || Organizer.State.RootId != 0 || !string.IsNullOrEmpty(Organizer.State.GroupBy)) {
 			GetNode<Control>("%NewTask").Hide();
 		} else {
 			GetNode<Control>("%NewTask").Show();
