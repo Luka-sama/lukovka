@@ -295,7 +295,7 @@ public partial class Organizer : Control {
 
 		var state = State.Clone(stateName);
 		AddOrRestoreState(state);
-		state.Save();
+		state.Create();
 	}
 
 	private static void AddStateButton(string stateName) {

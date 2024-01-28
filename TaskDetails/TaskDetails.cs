@@ -111,6 +111,8 @@ public partial class TaskDetails : Control {
 						);
 					} else if (value is List<string> list) {
 						lineEdit.Text = string.Join(" ", list);
+					} else if (value is double number) {
+						lineEdit.Text = number.ToString(CultureInfo.InvariantCulture);
 					} else {
 						lineEdit.Text = value?.ToString();
 					}
@@ -156,6 +158,11 @@ public partial class TaskDetails : Control {
 					var text = lineEdit.Text;
 					if (property.FieldType == typeof(int)) {
 						int.TryParse(text, out var number);
+						hasChanged = SetValue(property, number, onlyTest) || hasChanged;
+					} else if (property.FieldType == typeof(double)) {
+						double.TryParse(
+							text, NumberStyles.AllowDecimalPoint, CultureInfo.InvariantCulture, out var number
+						);
 						hasChanged = SetValue(property, number, onlyTest) || hasChanged;
 					} else if (property.FieldType == typeof(DateTime)) {
 						var date = DateTime.MinValue;

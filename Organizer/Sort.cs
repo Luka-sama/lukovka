@@ -8,13 +8,19 @@ public class Sort {
 			return 1;
 		}
 
-		if (a.Id > b.Id) {
+		var orderA = (a.Order != 0 ? a.Order : a.Id);
+		var orderB = (b.Order != 0 ? b.Order : b.Id);
+		return (orderA > orderB ? 1 : -1);
+	}
+
+	public static int History(Task a, Task b) {
+		if (a.Completed == DateTime.MinValue && b.Completed != DateTime.MinValue) {
 			return 1;
-		} else if (a.Id < b.Id) {
+		} else if (a.Completed != DateTime.MinValue && b.Completed == DateTime.MinValue) {
 			return -1;
 		}
-
-		return 0;
+		
+		return Standard(a, b);
 	}
 
 	public static int ByDate(Task a, Task b) {

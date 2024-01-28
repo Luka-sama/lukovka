@@ -27,6 +27,7 @@ public class Task {
 	public DateTime StartDate;
 	public List<string> Tags;
 	public int Priority;
+	public double Order;
 
 	public static void Create(string text, int parent) {
 		var datetime = CurrentTime();
@@ -41,9 +42,7 @@ public class Task {
 			App.Tasks[parent].Children.Add(task);
 		}
 		NextId++;
-		App.Tasks[task.Id] = task;
-		App.View.Render();
-		App.Request(HttpClient.Method.Put, task.Serialize());
+		task.Create();
 	}
 
 	public int CountChildren() {
@@ -92,7 +91,7 @@ public class Task {
 			newTask.StartDate = (startDate != DateTime.MinValue ? startDate.AddYears(RepeatingEvery) : startDate);
 			newTask.Date = (date != DateTime.MinValue ? date.AddYears(RepeatingEvery) : date);
 		}
-		newTask.Save();
+		newTask.Create();
 	}
 
 	public void Save() {
@@ -111,6 +110,12 @@ public class Task {
 		App.View.Render();
 		var idsAsString = string.Join("\n", tasksToDelete);
 		App.Request(HttpClient.Method.Delete, idsAsString);
+	}
+	
+	private void Create() {
+		App.Tasks[Id] = this;
+		App.View.Render();
+		App.Request(HttpClient.Method.Put, Serialize());
 	}
 	
 	private static Task Deserialize(string json) {

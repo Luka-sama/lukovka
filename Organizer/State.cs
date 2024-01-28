@@ -31,9 +31,9 @@ public class State {
 		return result;
 	}
 
-	public void Save() {
+	public void Create() {
 		var json = Serialize();
-		App.Request(HttpClient.Method.Post, json, true);
+		App.Request(HttpClient.Method.Put, json, true);
 	}
 
 	public void Delete() {

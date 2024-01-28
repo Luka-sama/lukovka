@@ -224,6 +224,17 @@ layout_mode = 2
 size_flags_horizontal = 0
 script = ExtResource("4_57bjy")
 
+[node name="OrderLabel" type="Label" parent="TaskDetailsContainer/PanelContainer/TaskDetailsEditing"]
+layout_mode = 2
+text = "Order: "
+
+[node name="Order" type="LineEdit" parent="TaskDetailsContainer/PanelContainer/TaskDetailsEditing"]
+custom_minimum_size = Vector2(100, 0)
+layout_mode = 2
+size_flags_horizontal = 0
+script = ExtResource("4_57bjy")
+IsDouble = true
+
 [node name="PointsLabel" type="Label" parent="TaskDetailsContainer/PanelContainer/TaskDetailsEditing"]
 layout_mode = 2
 text = "Points: "
