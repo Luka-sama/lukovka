@@ -3,8 +3,8 @@ ini_set('display_errors', 1);
 ini_set('display_startup_errors', 1);
 error_reporting(E_ALL);
 define('ACCESS_KEY', 't8B_JR_c_u3y0t6HSabj');
-define('DATA_PATH', '/srv/lukovka.txt');
-define('STATES_PATH', '/srv/lukovka_states.txt');
+define('TASKS_PATH', '/srv/lukovka/tasks.txt');
+define('STATES_PATH', '/srv/lukovka/states.txt');
 
 function stop($error) {
 	http_response_code(501);
@@ -23,7 +23,7 @@ function shutdown() {
 register_shutdown_function('shutdown');
 
 (isset($_GET['key']) && $_GET['key'] == ACCESS_KEY) or stop("wrong key");
-$path = (isset($_GET['states']) ? STATES_PATH : DATA_PATH);
+$path = (isset($_GET['states']) ? STATES_PATH : TASKS_PATH);
 $lockPath = "$path.lock";
 $lockFile = fopen($lockPath, 'c+');
 ($lockFile) or stop("couldn't create .lock-file");
