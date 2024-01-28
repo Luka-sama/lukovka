@@ -40,6 +40,10 @@ public static class Filter {
 	public static bool WithTagPlan(Task task) {
 		return task.Tags?.Contains("plan") ?? false;
 	}
+
+	public static bool Prioritized(Task task) {
+		return task.Priority > 0;
+	}
 	
 	// Pseudo-filters
 
