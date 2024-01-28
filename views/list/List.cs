@@ -3,8 +3,8 @@ using System.Linq;
 using Godot;
 
 public partial class List : TaskView {
-	private static readonly List<ListTask> FreeTaskNodes = new();
 	private static readonly List<ListTask> UsedTaskNodes = new();
+	private static readonly List<ListTask> FreeTaskNodes = new();
 	private static int _focusedId = -1;
 	private static bool _hasFocusedTaskChildren;
 	private static bool _shouldScroll;

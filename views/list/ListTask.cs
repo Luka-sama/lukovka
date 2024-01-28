@@ -21,6 +21,9 @@ public partial class ListTask : Control {
 			text = "[b]" + text + "[/b]";
 			GetNode<Control>("%Complete").Hide();
 			GetNode<Control>("%Spacer").Hide();
+		} else {
+			GetNode<Control>("%Complete").Show();
+			GetNode<Control>("%Spacer").Show();
 		}
 		if (task.Completed != DateTime.MinValue) {
 			text = "[s][i]" + text + "[/i][/s]";
@@ -33,7 +36,6 @@ public partial class ListTask : Control {
 		}
 		var textNode = GetNode<ImprovedRichTextLabel>("%Text");
 		textNode.SetText(text);
-		textNode.SelectionEnabled = !App.IsMobile();
 
 		var expandButton = GetNode<Button>("%Expand");
 		expandButton.Show();
@@ -49,8 +51,7 @@ public partial class ListTask : Control {
 	}
 
 	private void CompleteTask() {
-		_task.Completed = (_task.Completed == DateTime.MinValue ? DateTime.Now.ToUniversalTime() : DateTime.MinValue);
-		_task.Save();
+		_task.Complete();
 	}
 
 	private void OpenTask(InputEvent @event) {

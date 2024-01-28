@@ -157,6 +157,38 @@ text = "Date: "
 [node name="Date" type="LineEdit" parent="TaskDetailsContainer/PanelContainer/TaskDetailsEditing"]
 layout_mode = 2
 
+[node name="StartDateLabel" type="Label" parent="TaskDetailsContainer/PanelContainer/TaskDetailsEditing"]
+layout_mode = 2
+text = "Start date: "
+
+[node name="StartDate" type="LineEdit" parent="TaskDetailsContainer/PanelContainer/TaskDetailsEditing"]
+layout_mode = 2
+
+[node name="RepeatingEveryLabel" type="Label" parent="TaskDetailsContainer/PanelContainer/TaskDetailsEditing"]
+layout_mode = 2
+text = "Repeating every: "
+
+[node name="RepeatingEvery" type="LineEdit" parent="TaskDetailsContainer/PanelContainer/TaskDetailsEditing"]
+layout_mode = 2
+script = ExtResource("4_57bjy")
+
+[node name="RepeatingIntervalLabel" type="Label" parent="TaskDetailsContainer/PanelContainer/TaskDetailsEditing"]
+layout_mode = 2
+text = "Repeating interval: "
+
+[node name="RepeatingInterval" type="LineEdit" parent="TaskDetailsContainer/PanelContainer/TaskDetailsEditing"]
+layout_mode = 2
+script = ExtResource("4_57bjy")
+MinValue = 0
+MaxValue = 5
+
+[node name="RepeatingFromCompletedLabel" type="Label" parent="TaskDetailsContainer/PanelContainer/TaskDetailsEditing"]
+layout_mode = 2
+text = "From completed:"
+
+[node name="RepeatingFromCompleted" type="CheckBox" parent="TaskDetailsContainer/PanelContainer/TaskDetailsEditing"]
+layout_mode = 2
+
 [node name="PointsLabel" type="Label" parent="TaskDetailsContainer/PanelContainer/TaskDetailsEditing"]
 layout_mode = 2
 text = "Points: "

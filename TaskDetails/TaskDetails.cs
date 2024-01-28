@@ -37,8 +37,6 @@ public partial class TaskDetails : Control {
 		Visible = true;
 		GetTree().Paused = true;
 		_task = task;
-		GetNode<Control>("%TaskDetailsEditing").Hide();
-		GetNode<Control>("%TaskDetailsShowing").Show();
 		if (App.View is not List) {
 			GetNode<Button>("%SetAsRoot").Hide();
 		}
@@ -60,7 +58,9 @@ public partial class TaskDetails : Control {
 		if (!Visible) {
 			return;
 		}
-		Visible = false;
+		GetNode<Control>("%TaskDetailsEditing").Hide();
+		GetNode<Control>("%TaskDetailsShowing").Show();
+		Hide();
 		GetTree().Paused = false;
 		_task = null;
 	}
@@ -75,8 +75,7 @@ public partial class TaskDetails : Control {
 	}
 	
 	private void CompleteTask() {
-		_task.Completed = (_task.Completed == DateTime.MinValue ? DateTime.Now.ToUniversalTime() : DateTime.MinValue);
-		_task.Save();
+		_task.Complete();
 		ShowTask(_task);
 	}
 
@@ -96,7 +95,9 @@ public partial class TaskDetails : Control {
 			switch (child) {
 				case LineEdit lineEdit:
 					if (value is DateTime date) {
-						lineEdit.Text = date.ToLocalTime().ToString(CultureInfo.CurrentCulture);
+						lineEdit.Text = (
+							date != DateTime.MinValue ? date.ToLocalTime().ToString(CultureInfo.CurrentCulture) : ""
+						);
 					} else {
 						lineEdit.Text = value.ToString();
 					}
@@ -142,21 +143,24 @@ public partial class TaskDetails : Control {
 					var text = lineEdit.Text;
 					if (property.FieldType == typeof(int)) {
 						int.TryParse(text, out var number);
-						hasChanged = hasChanged || SetValue(property, number, onlyTest);
+						hasChanged = SetValue(property, number, onlyTest) || hasChanged;
 					} else if (property.FieldType == typeof(DateTime)) {
-						var date = DateTime
-							.Parse(text, CultureInfo.CurrentCulture, DateTimeStyles.AssumeLocal)
-							.ToUniversalTime();
-						hasChanged = hasChanged || SetValue(property, date, onlyTest);
+						var date = DateTime.MinValue;
+						if (!string.IsNullOrWhiteSpace(text)) {
+							date = DateTime
+								.Parse(text, CultureInfo.CurrentCulture, DateTimeStyles.AssumeLocal)
+								.ToUniversalTime();
+						}
+						hasChanged = SetValue(property, date, onlyTest) || hasChanged;
 					} else {
-						hasChanged = hasChanged || SetValue(property, text, onlyTest);
+						hasChanged = SetValue(property, text, onlyTest) || hasChanged;
 					}
 					break;
 				case TextEdit textEdit:
-					hasChanged = hasChanged || SetValue(property, textEdit.Text, onlyTest);
+					hasChanged = SetValue(property, textEdit.Text, onlyTest) || hasChanged;
 					break;
 				case CheckBox checkBox:
-					hasChanged = hasChanged || SetValue(property, checkBox.ButtonPressed, onlyTest);
+					hasChanged = SetValue(property, checkBox.ButtonPressed, onlyTest) || hasChanged;
 					break;
 			}
 		}
