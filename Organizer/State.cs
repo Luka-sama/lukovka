@@ -9,19 +9,11 @@ public class State {
 	};
 	public string Name;
 	public readonly List<string> SelectedFilters = new();
+	public int GroupBy = -1;
 	public int RootId { get; set; }
 	public int SelectedSort { get; set; }
 	public bool DescendingSort { get; set; }
 	public bool Expanded { get; set; }
-	
-	public static State Deserialize(string json) {
-		return JsonConvert.DeserializeObject<State>(json);
-	}
-
-	public string Serialize() {
-		SelectedFilters.Sort();
-		return JsonConvert.SerializeObject(this);
-	}
 
 	public State Clone(string newName) {
 		var state = Deserialize(Serialize());
@@ -46,5 +38,14 @@ public class State {
 
 	public void Delete() {
 		App.Request(HttpClient.Method.Delete, Name, true);
+	}
+	
+	private static State Deserialize(string json) {
+		return JsonConvert.DeserializeObject<State>(json);
+	}
+
+	private string Serialize() {
+		SelectedFilters.Sort();
+		return JsonConvert.SerializeObject(this);
 	}
 }

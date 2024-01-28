@@ -7,17 +7,20 @@ using Godot;
 
 public partial class Organizer : Control {
 	public static List<Task> Tasks { get; private set; }
-	public static readonly Dictionary<string, State> States = new();
 	public static State State { get; private set; } = State.Default;
+	private static readonly Dictionary<string, State> States = new();
 	private static readonly MethodInfo[] AllSorts = typeof(Sort)
 		.GetMethods(BindingFlags.Static | BindingFlags.Public);
 	private static readonly MethodInfo[] AllFilters = typeof(Filter)
+		.GetMethods(BindingFlags.Static | BindingFlags.Public);
+	private static readonly MethodInfo[] AllGroupings = typeof(Group)
 		.GetMethods(BindingFlags.Static | BindingFlags.Public);
 	private static FontFile _boldFont;
 	private static Control _states;
 	private static Control _stateManager;
 	private static PopupMenu _filterMenu;
 	private static OptionButton _sortMenu;
+	private static OptionButton _groupingMenu;
 	private static Button _expandButton;
 	private static ConfirmationDialog _confirmStateDelete;
 	private static ConfirmationDialog _enterStateName;
@@ -39,6 +42,33 @@ public partial class Organizer : Control {
 			}
 			return cmp;
 		});
+
+		if (State.GroupBy == -1) {
+			return;
+		}
+		var groups = new Dictionary<string, Task>();
+		var groupTasks = new List<Task>();
+		var nextId = -1;
+		var grouping = AllGroupings[State.GroupBy];
+		foreach (var task in Tasks) {
+			var group = (string)grouping.Invoke(null, new object[] { task })!;
+			if (groups.TryGetValue(group, out var groupTask)) {
+				task.Group = groupTask.Id;
+				continue;
+			}
+
+			groupTask = new Task() {
+				Expanded = true,
+				Id = nextId,
+				Text = group,
+				IsFolder = true,
+			};
+			groupTasks.Add(groupTask);
+			task.Group = groupTask.Id;
+			groups.Add(group, groupTask);
+			nextId--;
+		}
+		Tasks.AddRange(groupTasks);
 	}
 
 	public override void _Ready() {
@@ -53,10 +83,16 @@ public partial class Organizer : Control {
 		foreach (var sort in AllSorts) {
 			_sortMenu.AddItem(TransformCamelCase(sort.Name));
 		}
-		_sortMenu.Select(State.SelectedSort);
+		_sortMenu.Select(State.SelectedSort + 1);
+
+		_groupingMenu = GetNode<OptionButton>("%GroupBy");
+		foreach (var grouping in AllGroupings) {
+			_groupingMenu.AddItem(TransformCamelCase(grouping.Name));
+		}
+		_groupingMenu.Select(State.GroupBy + 1);
 
 		_filterMenu = GetNode<MenuButton>("%AddFilter").GetPopup();
-		_filterMenu.IdPressed += AddFilter;
+		_filterMenu.IdPressed += AddFilterByIndex;
 		
 		States.Add(State.Name, State.Default);
 		AddStateButton(State.Name);
@@ -73,14 +109,15 @@ public partial class Organizer : Control {
 			return;
 		}
 		
+		if (filterName == "NoHierarchy") {
+			RemoveFilter("NoTasksWithChildren");
+			State.GroupBy = -1;
+		}
+		
 		State.SelectedFilters.Remove(filterName);
 		_stateManager.GetNode(filterName).QueueFree();
 		RegenerateFilterList();
 		App.View.Render();
-
-		if (filterName == "NoHierarchy") {
-			RemoveFilter("NoTasksWithChildren");
-		}
 	}
 
 	public static void AddOrRestoreState(State state) {
@@ -154,23 +191,37 @@ public partial class Organizer : Control {
 		}
 	}
 
-	private static void ChangeSort(long sortId) {
+	private static void ChangeSort(long index) {
+		var sortId = (int)index - 1;
 		if (State.SelectedSort == sortId) {
 			State.DescendingSort = !State.DescendingSort;
 		}
-		State.SelectedSort = (int)sortId;
+		State.SelectedSort = sortId;
+		App.View.Render();
+	}
+
+	private static void ChangeGrouping(long index) {
+		AddFilter("NoHierarchy");
+		State.GroupBy = (int)index - 1;
 		App.View.Render();
 	}
 	
-	private static void AddFilter(long num) {
+	private static void AddFilterByIndex(long index) {
 		var filterName = AllFilters
 			.Where(filter => !HasFilter(filter.Name))
-			.ToList()[(int)num].Name;
+			.ToList()[(int)index].Name;
+		AddFilter(filterName);
+	}
+
+	private static void AddFilter(string filterName) {
+		if (HasFilter(filterName)) {
+			return;
+		}
 		
 		switch (filterName) {
 			case "NoHierarchy":
-				State.Expanded = true;
-				ExpandTasks();
+				State.Expanded = false;
+				ApplyExpand();
 				break;
 			case "NoTasksWithChildren" when !HasFilter("NoHierarchy"):
 				App.ShowError("This filter can only be added with no hierarchy filter.");
@@ -182,7 +233,22 @@ public partial class Organizer : Control {
 				RemoveFilter("Completed");
 				break;
 			case "Completed":
+			case "CompletedLastDay":
+			case "CompletedLastWeek":
+			case "CompletedLastMonth":
+			case "CompletedLastYear":
 				RemoveFilter("NotCompleted");
+				RemoveFilter("Completed");
+				RemoveFilter("CompletedLastDay");
+				RemoveFilter("CompletedLastWeek");
+				RemoveFilter("CompletedLastMonth");
+				RemoveFilter("CompletedLastYear");
+				break;
+			case "WithPath":
+				RemoveFilter("WithPathWithoutFirst");
+				break;
+			case "WithPathWithoutFirst":
+				RemoveFilter("WithPath");
 				break;
 		}
 
@@ -266,7 +332,8 @@ public partial class Organizer : Control {
 		foreach (var filterName in State.SelectedFilters) {
 			AddFilterButton(filterName);
 		}
-		_sortMenu.Select(State.SelectedSort);
+		_sortMenu.Select(State.SelectedSort + 1);
+		_groupingMenu.Select(State.GroupBy + 1);
 		ApplyExpand();
 		RegenerateFilterList();
 		UpdateStateButtons();

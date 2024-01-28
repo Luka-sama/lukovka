@@ -1,5 +1,4 @@
 using System;
-using System.Linq;
 using Godot;
 
 public partial class ListTask : Control {
@@ -9,6 +8,15 @@ public partial class ListTask : Control {
 		_task = task;
 		
 		var text = task.Text;
+		if (Organizer.HasFilter("WithPath") || Organizer.HasFilter("WithPathWithoutFirst")) {
+			var currentTask = _task;
+			while (App.Tasks.ContainsKey(currentTask.Parent)) {
+				currentTask = App.Tasks[currentTask.Parent];
+				if (Organizer.HasFilter("WithPath") || App.Tasks.ContainsKey(currentTask.Parent)) {
+					text = $"{currentTask.Text}. {text}";
+				}
+			}
+		}
 		if (task.IsFolder) {
 			text = "[b]" + text + "[/b]";
 			GetNode<Control>("%Complete").Hide();

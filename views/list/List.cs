@@ -3,15 +3,17 @@ using System.Linq;
 using Godot;
 
 public partial class List : TaskView {
+	private static readonly List<ListTask> FreeTaskNodes = new();
+	private static readonly List<ListTask> UsedTaskNodes = new();
 	private static int _focusedId = -1;
 	private static bool _hasFocusedTaskChildren;
 	private static bool _shouldScroll;
-	private static readonly Dictionary<int, ListTask> _taskNodeById = new();
 	private bool _isNested;
 	private int _rootId;
 	private PackedScene _listScene;
 	private PackedScene _taskScene;
 	private Control _taskList;
+	private Control _hiddenTasks;
 
 	public static void FocusTask(int taskId) {
 		if (_focusedId == taskId) {
@@ -22,18 +24,22 @@ public partial class List : TaskView {
 		}
 		_focusedId = taskId;
 	}
-	
-	public static void Clear() {
-		foreach (var taskNode in _taskNodeById.Values) {
-			taskNode.QueueFree();
-		}
-	}
 
 	public override void _Ready() {
 		_listScene = GD.Load<PackedScene>("res://views/list/List.tscn");
 		_taskScene = GD.Load<PackedScene>("res://views/list/ListTask.tscn");
 		_taskList = GetNode<Control>("%TaskList");
+		_hiddenTasks = GetNode<Control>("%HiddenTasks");
 		Render();
+	}
+
+	public override void _Process(double _) {
+		if (_isNested || FreeTaskNodes.Count + UsedTaskNodes.Count >= App.Tasks.Count) {
+			return;
+		}
+		for (var i = 0; i < 3; i++) {
+			CreateTaskNode();
+		}
 	}
 
 	public override void _UnhandledInput(InputEvent @event) {
@@ -45,10 +51,11 @@ public partial class List : TaskView {
 	public override async void Render() {
 		if (!_isNested) {
 			_hasFocusedTaskChildren = false;
-			var hiddenTasks = GetNode<Control>("%HiddenTasks");
-			foreach (var taskNode in _taskNodeById.Values) {
-				taskNode.Reparent(hiddenTasks);
+			foreach (var taskNode in UsedTaskNodes) {
+				taskNode.Reparent(_hiddenTasks);
+				FreeTaskNodes.Add(taskNode);
 			}
+			UsedTaskNodes.Clear();
 			foreach (var child in _taskList.GetChildren()) {
 				child.QueueFree();
 			}
@@ -60,28 +67,29 @@ public partial class List : TaskView {
 			} else {
 				_rootId = 0;
 			}
-		} else if (App.Tasks[_rootId].IsFolder) {
+		} else if (Organizer.Tasks.Find(task => task.Id == _rootId).IsFolder) {
 			GetNode<Control>("%Spacer").CustomMinimumSize /= 2;
 		}
 		
 		var tasks = Organizer.Tasks;
 		if (!Organizer.HasFilter("NoHierarchy")) {
 			tasks = tasks.Where(task => task.Parent == _rootId).ToList();
+		} else if (Organizer.State.GroupBy != -1) {
+			tasks = tasks.Where(task => task.Group == _rootId).ToList();
 		}
 		foreach (var task in tasks) {
-			if (!_taskNodeById.TryGetValue(task.Id, out var taskNode)) {
-				taskNode = _taskScene.Instantiate<ListTask>();
-				_taskNodeById.Add(task.Id, taskNode);
-				_taskList.AddChild(taskNode);
-			} else {
-				taskNode.Reparent(_taskList);
+			if (FreeTaskNodes.Count < 1) {
+				CreateTaskNode();
 			}
-			
+			var taskNode = FreeTaskNodes[0];
+			FreeTaskNodes.Remove(taskNode);
+			UsedTaskNodes.Add(taskNode);
+			taskNode.Reparent(_taskList);
 			taskNode.SetTask(task);
+			
 			if (!task.Expanded) {
 				continue;
 			}
-			
 			var sublist = _listScene.Instantiate<List>();
 			sublist._rootId = task.Id;
 			sublist._isNested = true;
@@ -89,7 +97,7 @@ public partial class List : TaskView {
 		}
 
 		await ToSignal(GetTree(), SceneTree.SignalName.ProcessFrame);
-		if (_focusedId == _rootId) {
+		if (_focusedId > 0 && _focusedId == _rootId) {
 			_hasFocusedTaskChildren = (tasks.Count > 0);
 			var newTaskText = GetNode<Control>("%NewTaskText");
 			var isNewTaskTextVisible = App.Rect.Intersects(newTaskText.GetGlobalRect());
@@ -102,9 +110,15 @@ public partial class List : TaskView {
 			}
 		} else if (_isNested && tasks.Count == 0) {
 			Hide();
-		} else if (_isNested || Organizer.State.RootId != 0) {
+		} else if (_isNested || Organizer.State.RootId != 0 || Organizer.State.GroupBy != -1) {
 			GetNode<Control>("%NewTask").Hide();
 		}
+	}
+
+	private void CreateTaskNode() {
+		var taskNode = _taskScene.Instantiate<ListTask>();
+		FreeTaskNodes.Add(taskNode);
+		_hiddenTasks.AddChild(taskNode);
 	}
 
 	private void CreateTask() {

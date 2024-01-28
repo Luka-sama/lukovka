@@ -9,6 +9,7 @@ public class Task {
 	public static int NextId { get; set; } = 1;
 	[JsonIgnore] public bool Expanded;
 	[JsonIgnore] public List<Task> Children = new();
+	[JsonIgnore] public int Group;
 	public int Id;
 	[DefaultValue("")] public string Text = "";
 	public DateTime Created;

@@ -30,7 +30,19 @@ text = "Expand"
 [node name="Sort" type="OptionButton" parent="StateManager"]
 unique_name_in_owner = true
 layout_mode = 2
+item_count = 1
 allow_reselect = true
+popup/item_0/text = "Sort"
+popup/item_0/id = 0
+popup/item_0/separator = true
+
+[node name="GroupBy" type="OptionButton" parent="StateManager"]
+unique_name_in_owner = true
+layout_mode = 2
+item_count = 1
+popup/item_0/text = "Group"
+popup/item_0/id = 0
+popup/item_0/separator = true
 
 [node name="AddFilter" type="MenuButton" parent="StateManager"]
 unique_name_in_owner = true
@@ -60,6 +72,7 @@ offset_bottom = 51.0
 [connection signal="pressed" from="States/AddState" to="." method="AskStateName"]
 [connection signal="pressed" from="StateManager/Expand" to="." method="ExpandTasks"]
 [connection signal="item_selected" from="StateManager/Sort" to="." method="ChangeSort"]
+[connection signal="item_selected" from="StateManager/GroupBy" to="." method="ChangeGrouping"]
 [connection signal="confirmed" from="ConfirmStateDelete" to="." method="RemoveState"]
 [connection signal="confirmed" from="EnterStateName" to="." method="AddState"]
 [connection signal="text_submitted" from="EnterStateName/StateName" to="." method="StateNameSubmitted"]
