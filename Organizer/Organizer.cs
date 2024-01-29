@@ -8,6 +8,7 @@ using Godot;
 public partial class Organizer : Control {
 	public static List<Task> Tasks { get; private set; }
 	public static State State { get; private set; } = State.Default;
+	public static readonly Filter Filter = new();
 	private static readonly Dictionary<string, State> States = new();
 	private static readonly MethodInfo[] AllSorts = typeof(Sort)
 		.GetMethods(BindingFlags.Static | BindingFlags.Public);
@@ -17,7 +18,6 @@ public partial class Organizer : Control {
 		.ToArray();
 	private static readonly MethodInfo[] AllGroupings = typeof(Group)
 		.GetMethods(BindingFlags.Static | BindingFlags.Public);
-	private static Filter _filter = new();
 	private static FontFile _boldFont;
 	private static Control _states;
 	private static Control _stateManager;
@@ -134,16 +134,16 @@ public partial class Organizer : Control {
 	}
 
 	private static bool SumFilter(Task task) {
-		_filter.SetTask(task);
+		Filter.SetTask(task);
 		var result = AllFilters
 			.Where(filterInfo => HasFilter(filterInfo.Name))
-			.All(filterInfo => (bool)filterInfo.Invoke(_filter, new object[] {})!);
+			.All(filterInfo => (bool)filterInfo.Invoke(Filter, new object[] {})!);
 		if (!result) {
 			return false;
 		}
 		return State.SelectedFilters
 			.Where(filterName => filterName.StartsWith("@"))
-			.All(customFilter => _filter.Custom(customFilter[1..]));
+			.All(customFilter => Filter.Custom(customFilter[1..]));
 	}
 	
 	private static void RegenerateFilterList() {
