@@ -1,65 +1,106 @@
 using System;
+using System.Collections.Generic;
+using System.Linq;
+using System.Reflection;
+using Godot;
+using Newtonsoft.Json;
+using Newtonsoft.Json.Serialization;
+using Array = Godot.Collections.Array;
 
-public static class Filter {
-	public static bool NotCompleted(Task task) {
-		return task.Completed == DateTime.MinValue;
+public partial class Filter : GodotObject {
+	private static readonly FieldInfo[] Fields = typeof(Task)
+		.GetFields(BindingFlags.Public | BindingFlags.Instance)
+		.Where(field => !Attribute.IsDefined(field, typeof(JsonIgnoreAttribute)))
+		.ToArray();
+	private static readonly SnakeCaseNamingStrategy SnakeCaseStrategy = new();
+	private static readonly string[] FieldNames = Fields
+		.Select(field => SnakeCaseStrategy.GetPropertyName(field.Name, false))
+		.Append("now")
+		.ToArray();
+	private static readonly DateTime Epoch = new(1970, 1, 1);
+	private Task _task;
+
+	public void SetTask(Task task) {
+		_task = task;
 	}
 	
-	public static bool Completed(Task task) {
-		return task.Completed != DateTime.MinValue;
+	public bool NotCompleted() {
+		return _task.Completed == DateTime.MinValue;
 	}
 	
-	public static bool CompletedLastDay(Task task) {
-		return (DateTime.Now - task.Completed).TotalDays <= 1;
-	}
-
-	public static bool CompletedLastWeek(Task task) {
-		return (DateTime.Now - task.Completed).TotalDays <= 7;
+	public bool Completed() {
+		return _task.Completed != DateTime.MinValue;
 	}
 	
-	public static bool CompletedLastMonth(Task task) {
-		return task.Completed.AddMonths(1) >= DateTime.Now;
+	public bool CompletedLastMonth() {
+		return _task.Completed.AddMonths(1) >= DateTime.Now;
 	}
 	
-	public static bool CompletedLastYear(Task task) {
-		return task.Completed.AddYears(1) >= DateTime.Now;
+	public bool CompletedLastYear() {
+		return _task.Completed.AddYears(1) >= DateTime.Now;
 	}
 
-	public static bool WithDate(Task task) {
-		return task.Date != DateTime.MinValue;
+	public bool WithDate() {
+		return _task.Date != DateTime.MinValue;
 	}
 
-	public static bool NoTasksWithChildren(Task task) {
-		return task.Children.Count < 1;
+	public bool NextMonth() {
+		return _task.Date >= DateTime.Now && _task.Date <= DateTime.Now.AddMonths(1);
 	}
 
-	public static bool WithTagTermin(Task task) {
-		return task.Tags?.Contains("termin") ?? false;
-	}
-	
-	public static bool WithTagPlan(Task task) {
-		return task.Tags?.Contains("plan") ?? false;
+	public bool NextYear() {
+		return _task.Date >= DateTime.Now && _task.Date <= DateTime.Now.AddYears(1);
 	}
 
-	public static bool Prioritized(Task task) {
-		return task.Priority > 0;
+	public bool NoTasksWithChildren() {
+		return _task.Children.Count < 1;
 	}
 	
 	// Pseudo-filters
 
-	public static bool NoRootTaskParent(Task task) {
+	public bool NoRootTaskParent() {
 		return true;
 	}
 
-	public static bool NoHierarchy(Task task) {
+	public bool NoHierarchy() {
 		return true;
 	}
 
-	public static bool WithPath(Task task) {
+	public bool WithPath() {
 		return true;
 	}
 	
-	public static bool WithPathWithoutFirst(Task task) {
+	public bool WithPathWithoutFirst() {
 		return true;
+	}
+
+	public bool NoCompleteButton() {
+		return true;
+	}
+
+	public bool Custom(string expressionString) {
+		var values = Fields
+			.Select(field => {
+				return (Variant)(field.GetValue(_task) switch {
+					bool flag => flag,
+					int num => num,
+					double num => num,
+					string str => str,
+					DateTime dateTime => (
+						dateTime != DateTime.MinValue ? (dateTime.ToUniversalTime() - Epoch).TotalSeconds : 0
+					),
+					List<string> list => new Array(list.Select(value => Variant.From(value))),
+					null when field.FieldType == typeof(List<string>) => new Array(),
+					_ => throw new ArgumentException()
+				});
+			})
+			.Append((DateTime.Now.ToUniversalTime() - Epoch).TotalSeconds);
+		var expression = new Expression();
+		expression.Parse(expressionString, FieldNames);
+		var result = expression.Execute(new Array(values), this);
+		if (!expression.HasExecuteFailed()) {
+			return (bool)result;
+		}
+		return false;
 	}
 }

@@ -70,6 +70,19 @@ offset_top = 8.0
 offset_right = 292.0
 offset_bottom = 51.0
 
+[node name="EnterCustomFilter" type="ConfirmationDialog" parent="."]
+unique_name_in_owner = true
+title = "Enter the custom filter"
+size = Vector2i(300, 100)
+theme = ExtResource("2_r7qcf")
+
+[node name="CustomFilter" type="LineEdit" parent="EnterCustomFilter"]
+unique_name_in_owner = true
+offset_left = 8.0
+offset_top = 8.0
+offset_right = 292.0
+offset_bottom = 51.0
+
 [connection signal="pressed" from="States/AddState" to="." method="AskStateName"]
 [connection signal="pressed" from="StateManager/Expand" to="." method="ExpandTasks"]
 [connection signal="item_selected" from="StateManager/Sort" to="." method="ChangeSort"]
@@ -77,3 +90,5 @@ offset_bottom = 51.0
 [connection signal="confirmed" from="ConfirmStateDelete" to="." method="RemoveState"]
 [connection signal="confirmed" from="EnterStateName" to="." method="AddState"]
 [connection signal="text_submitted" from="EnterStateName/StateName" to="." method="StateNameSubmitted"]
+[connection signal="confirmed" from="EnterCustomFilter" to="." method="AddCustomFilter"]
+[connection signal="text_submitted" from="EnterCustomFilter/CustomFilter" to="." method="CustomFilterSubmitted"]

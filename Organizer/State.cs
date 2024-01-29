@@ -7,13 +7,13 @@ public class State {
 		Name = "⌂",
 		SelectedFilters = { "NotCompleted" },
 	};
-	public string Name { get; set; }
+	public string Name;
 	public readonly List<string> SelectedFilters = new();
-	public string GroupBy { get; set; } = "";
-	public string SelectedSort { get; set; } = "Standard";
-	public int RootId { get; set; }
-	public bool DescendingSort { get; set; }
-	public bool Expanded { get; set; }
+	public string GroupBy = "";
+	public string SelectedSort = "Standard";
+	public int RootId;
+	public bool DescendingSort;
+	public bool Expanded;
 
 	public State Clone(string newName) {
 		var state = Deserialize(Serialize());

@@ -12,9 +12,10 @@ public partial class Organizer : Control {
 	private static readonly MethodInfo[] AllSorts = typeof(Sort)
 		.GetMethods(BindingFlags.Static | BindingFlags.Public);
 	private static readonly MethodInfo[] AllFilters = typeof(Filter)
-		.GetMethods(BindingFlags.Static | BindingFlags.Public);
+		.GetMethods(BindingFlags.Instance | BindingFlags.Public);
 	private static readonly MethodInfo[] AllGroupings = typeof(Group)
 		.GetMethods(BindingFlags.Static | BindingFlags.Public);
+	private static Filter _filter = new();
 	private static FontFile _boldFont;
 	private static Control _states;
 	private static Control _stateManager;
@@ -24,6 +25,7 @@ public partial class Organizer : Control {
 	private static Button _expandButton;
 	private static ConfirmationDialog _confirmStateDelete;
 	private static ConfirmationDialog _enterStateName;
+	private static ConfirmationDialog _enterCustomFilter;
 	private static string _stateToRemove;
 	
 	public static void Organize() {
@@ -78,15 +80,16 @@ public partial class Organizer : Control {
 		_expandButton = GetNode<Button>("%Expand");
 		_confirmStateDelete = GetNode<ConfirmationDialog>("%ConfirmStateDelete");
 		_enterStateName = GetNode<ConfirmationDialog>("%EnterStateName");
+		_enterCustomFilter = GetNode<ConfirmationDialog>("%EnterCustomFilter");
 		
 		_sortMenu = GetNode<OptionButton>("%Sort");
 		foreach (var sort in AllSorts) {
-			_sortMenu.AddItem(TransformCamelCase(sort.Name));
+			_sortMenu.AddItem(TransformName(sort.Name));
 		}
 
 		_groupingMenu = GetNode<OptionButton>("%GroupBy");
 		foreach (var grouping in AllGroupings) {
-			_groupingMenu.AddItem(TransformCamelCase(grouping.Name));
+			_groupingMenu.AddItem(TransformName(grouping.Name));
 		}
 
 		_filterMenu = GetNode<MenuButton>("%AddFilter").GetPopup();
@@ -113,7 +116,7 @@ public partial class Organizer : Control {
 		}
 		
 		State.SelectedFilters.Remove(filterName);
-		_stateManager.GetNode(filterName).QueueFree();
+		_stateManager.GetNode(filterName.ValidateNodeName()).QueueFree();
 		RegenerateFilterList();
 		App.View.Render();
 	}
@@ -129,16 +132,23 @@ public partial class Organizer : Control {
 	}
 
 	private static bool SumFilter(Task task) {
-		return AllFilters
-			.Where(filter => HasFilter(filter.Name))
-			.All(filter => (bool)filter.Invoke(null, new object[] { task })!);
+		_filter.SetTask(task);
+		var result = AllFilters
+			.Where(filterInfo => HasFilter(filterInfo.Name))
+			.All(filterInfo => (bool)filterInfo.Invoke(_filter, new object[] {})!);
+		if (!result) {
+			return false;
+		}
+		return State.SelectedFilters
+			.Where(filterName => filterName.StartsWith("@"))
+			.All(customFilter => _filter.Custom(customFilter[1..]));
 	}
 	
 	private static void RegenerateFilterList() {
 		_filterMenu.Clear(true);
 		foreach (var filter in AllFilters) {
 			if (!HasFilter(filter.Name)) {
-				_filterMenu.AddItem(TransformCamelCase(filter.Name));
+				_filterMenu.AddItem(TransformName(filter.Name));
 			}
 		}
 	}
@@ -159,7 +169,11 @@ public partial class Organizer : Control {
 		return IsChildOfRoot(App.Tasks[task.Parent]);
 	}
 	
-	private static string TransformCamelCase(string input) {
+	private static string TransformName(string input) {
+		if (input.StartsWith("@")) {
+			return input[1..];
+		}
+		
 		var result = new StringBuilder();
 		result.Append(input[0]);
 		for (var i = 1; i < input.Length; i++) {
@@ -221,16 +235,25 @@ public partial class Organizer : Control {
 		}
 		
 		switch (filterName) {
-			case "NoHierarchy":
-				State.Expanded = false;
-				ApplyExpand();
-				break;
+			case "Custom":
+				var validated = filterName.ValidateNodeName();
+				if (State.SelectedFilters.Exists(filter => filter.ValidateNodeName() == validated)) {
+					App.ShowError($"There is already a custom filter with content {filterName}.");
+					return;
+				}
+				_enterCustomFilter.PopupCentered();
+				_enterCustomFilter.GetNode<LineEdit>("%CustomFilter").GrabFocus();
+				return;
 			case "NoTasksWithChildren" when !HasFilter("NoHierarchy"):
 				App.ShowError("This filter can only be added with no hierarchy filter.");
 				return;
 			case "NoRootTaskParent" when State.RootId == 0 || App.Tasks[State.RootId].Parent == 0:
 				App.ShowError("This filter can only be added with a root task which has a parent.");
 				return;
+			case "NoHierarchy":
+				State.Expanded = false;
+				ApplyExpand();
+				break;
 			case "NotCompleted":
 				RemoveFilter("Completed");
 				break;
@@ -255,15 +278,24 @@ public partial class Organizer : Control {
 		}
 
 		State.SelectedFilters.Add(filterName);
-		RegenerateFilterList();
 		AddFilterButton(filterName);
+		App.View.Render();
+		RegenerateFilterList();
+	}
+
+	private static void AddCustomFilter() {
+		var lineEdit = _enterCustomFilter.GetNode<LineEdit>("%CustomFilter");
+		var customFilter = "@" + lineEdit.Text;
+		lineEdit.Text = "";
+		State.SelectedFilters.Add(customFilter);
+		AddFilterButton(customFilter);
 		App.View.Render();
 	}
 
 	private static void AddFilterButton(string filterName) {
 		var filterButton = new Button();
-		filterButton.Name = filterName;
-		filterButton.Text = TransformCamelCase(filterName);
+		filterButton.Name = filterName.ValidateNodeName();
+		filterButton.Text = TransformName(filterName);
 		filterButton.Pressed += () => RemoveFilter(filterName);
 		_stateManager.AddChild(filterButton);
 		_stateManager.MoveChild(filterButton, -2);
@@ -318,6 +350,10 @@ public partial class Organizer : Control {
 		_enterStateName.GetOkButton().EmitSignal("pressed");
 	}
 
+	private static void CustomFilterSubmitted(string _) {
+		_enterCustomFilter.GetOkButton().EmitSignal("pressed");
+	}
+
 	private static void RemoveState() {
 		_states.GetNode(_stateToRemove).QueueFree();
 		States[_stateToRemove].Delete();
@@ -327,7 +363,7 @@ public partial class Organizer : Control {
 	private static void ApplyState(State newState, bool first = false) {
 		if (!first) {
 			foreach (var filterName in State.SelectedFilters) {
-				_stateManager.GetNode(filterName).Free();
+				_stateManager.GetNode(filterName.ValidateNodeName()).Free();
 			}
 		}
 		State = newState;
