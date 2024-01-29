@@ -1,10 +1,6 @@
 using System;
-using System.Reflection;
 
 public class Sort {
-	public static readonly MethodInfo[] AllSorts = typeof(Sort)
-		.GetMethods(BindingFlags.Static | BindingFlags.Public);
-	
 	public static int Standard(Task a, Task b) {
 		if (a.Completed == DateTime.MinValue && b.Completed != DateTime.MinValue) {
 			return -1;

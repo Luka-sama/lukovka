@@ -1,10 +1,6 @@
 using System;
-using System.Reflection;
 
 public class Group {
-	public static readonly MethodInfo[] AllGroupings = typeof(Group)
-		.GetMethods(BindingFlags.Static | BindingFlags.Public);
-	
 	public static string ByDate(Task task) {
 		return DateToString(task.Date);
 	}
