@@ -9,13 +9,6 @@ public partial class Organizer : Control {
 	public static List<Task> Tasks { get; private set; }
 	public static State State { get; private set; } = State.Default;
 	private static readonly Dictionary<string, State> States = new();
-	private static readonly MethodInfo[] AllSorts = typeof(Sort)
-		.GetMethods(BindingFlags.Static | BindingFlags.Public);
-	private static readonly MethodInfo[] AllFilters = typeof(Filter)
-		.GetMethods(BindingFlags.Instance | BindingFlags.Public);
-	private static readonly MethodInfo[] AllGroupings = typeof(Group)
-		.GetMethods(BindingFlags.Static | BindingFlags.Public);
-	private static Filter _filter = new();
 	private static FontFile _boldFont;
 	private static Control _states;
 	private static Control _stateManager;
@@ -36,7 +29,7 @@ public partial class Organizer : Control {
 			.Where(HasFilter("NoHierarchy") ? SumFilter : WithHierarchy(SumFilter))
 			.ToList();
 		
-		var sort = AllSorts.First(sort => sort.Name == State.SelectedSort);
+		var sort = Sort.AllSorts.First(sort => sort.Name == State.SelectedSort);
 		Tasks.Sort((a, b) => {
 			var cmp = (int)sort.Invoke(null, new object[] { a, b })!;
 			if (State.DescendingSort && cmp != 0) {
@@ -51,7 +44,7 @@ public partial class Organizer : Control {
 		var groups = new Dictionary<string, Task>();
 		var groupTasks = new List<Task>();
 		var nextId = -1;
-		var grouping = AllGroupings.First(grouping => grouping.Name == State.GroupBy);
+		var grouping = Group.AllGroupings.First(grouping => grouping.Name == State.GroupBy);
 		foreach (var task in Tasks) {
 			var group = (string)grouping.Invoke(null, new object[] { task })!;
 			if (groups.TryGetValue(group, out var groupTask)) {
@@ -83,12 +76,12 @@ public partial class Organizer : Control {
 		_enterCustomFilter = GetNode<ConfirmationDialog>("%EnterCustomFilter");
 		
 		_sortMenu = GetNode<OptionButton>("%Sort");
-		foreach (var sort in AllSorts) {
+		foreach (var sort in Sort.AllSorts) {
 			_sortMenu.AddItem(TransformName(sort.Name));
 		}
 
 		_groupingMenu = GetNode<OptionButton>("%GroupBy");
-		foreach (var grouping in AllGroupings) {
+		foreach (var grouping in Group.AllGroupings) {
 			_groupingMenu.AddItem(TransformName(grouping.Name));
 		}
 
@@ -132,21 +125,20 @@ public partial class Organizer : Control {
 	}
 
 	private static bool SumFilter(Task task) {
-		_filter.SetTask(task);
-		var result = AllFilters
+		var result = Filter.AllFilters
 			.Where(filterInfo => HasFilter(filterInfo.Name))
-			.All(filterInfo => (bool)filterInfo.Invoke(_filter, new object[] {})!);
+			.All(filterInfo => (bool)filterInfo.Invoke(null, new object[] { task })!);
 		if (!result) {
 			return false;
 		}
 		return State.SelectedFilters
 			.Where(filterName => filterName.StartsWith("@"))
-			.All(customFilter => _filter.Custom(customFilter[1..]));
+			.All(customFilter => Filter.Custom(task, customFilter[1..]));
 	}
 	
 	private static void RegenerateFilterList() {
 		_filterMenu.Clear(true);
-		foreach (var filter in AllFilters) {
+		foreach (var filter in Filter.AllFilters) {
 			if (!HasFilter(filter.Name)) {
 				_filterMenu.AddItem(TransformName(filter.Name));
 			}
@@ -204,7 +196,7 @@ public partial class Organizer : Control {
 	}
 
 	private static void ChangeSort(long index) {
-		var sortName = AllSorts[(int)index - 1].Name;
+		var sortName = Sort.AllSorts[(int)index - 1].Name;
 		if (State.SelectedSort == sortName) {
 			State.DescendingSort = !State.DescendingSort;
 		}
@@ -214,7 +206,7 @@ public partial class Organizer : Control {
 
 	private static void ChangeGrouping(long index) {
 		AddFilter("NoHierarchy");
-		var groupBy = AllGroupings[(int)index - 1].Name;
+		var groupBy = Group.AllGroupings[(int)index - 1].Name;
 		State.GroupBy = (State.GroupBy != groupBy ? groupBy : "");
 		if (string.IsNullOrEmpty(State.GroupBy)) {
 			_groupingMenu.Select(0);
@@ -223,7 +215,7 @@ public partial class Organizer : Control {
 	}
 	
 	private static void AddFilterByIndex(long index) {
-		var filterName = AllFilters
+		var filterName = Filter.AllFilters
 			.Where(filter => !HasFilter(filter.Name))
 			.ToList()[(int)index].Name;
 		AddFilter(filterName);
@@ -371,12 +363,12 @@ public partial class Organizer : Control {
 			AddFilterButton(filterName);
 		}
 		
-		var sort = AllSorts.First(sort => sort.Name == State.SelectedSort);
-		_sortMenu.Select(Array.IndexOf(AllSorts, sort) + 1);
+		var sort = Sort.AllSorts.First(sort => sort.Name == State.SelectedSort);
+		_sortMenu.Select(Array.IndexOf(Sort.AllSorts, sort) + 1);
 		
 		if (!string.IsNullOrEmpty(State.GroupBy)) {
-			var grouping = AllGroupings.First(grouping => grouping.Name == State.GroupBy);
-			_groupingMenu.Select(Array.IndexOf(AllGroupings, grouping) + 1);
+			var grouping = Group.AllGroupings.First(grouping => grouping.Name == State.GroupBy);
+			_groupingMenu.Select(Array.IndexOf(Group.AllGroupings, grouping) + 1);
 		} else {
 			_groupingMenu.Select(0);
 		}
