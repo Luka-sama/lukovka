@@ -12,7 +12,9 @@ public partial class Organizer : Control {
 	private static readonly MethodInfo[] AllSorts = typeof(Sort)
 		.GetMethods(BindingFlags.Static | BindingFlags.Public);
 	private static readonly MethodInfo[] AllFilters = typeof(Filter)
-		.GetMethods(BindingFlags.Instance | BindingFlags.Public);
+		.GetMethods(BindingFlags.Instance | BindingFlags.Public)
+		.Where(method => method.DeclaringType == typeof(Filter))
+		.ToArray();
 	private static readonly MethodInfo[] AllGroupings = typeof(Group)
 		.GetMethods(BindingFlags.Static | BindingFlags.Public);
 	private static Filter _filter = new();

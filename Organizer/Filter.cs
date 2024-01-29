@@ -4,7 +4,6 @@ using System.Linq;
 using System.Reflection;
 using Godot;
 using Newtonsoft.Json;
-using Newtonsoft.Json.Serialization;
 using Array = Godot.Collections.Array;
 
 public partial class Filter : GodotObject {
@@ -12,9 +11,8 @@ public partial class Filter : GodotObject {
 		.GetFields(BindingFlags.Public | BindingFlags.Instance)
 		.Where(field => !Attribute.IsDefined(field, typeof(JsonIgnoreAttribute)))
 		.ToArray();
-	private static readonly SnakeCaseNamingStrategy SnakeCaseStrategy = new();
 	private static readonly string[] FieldNames = Fields
-		.Select(field => SnakeCaseStrategy.GetPropertyName(field.Name, false))
+		.Select(field => char.ToLower(field.Name[0]) + (field.Name.Length == 1 ? "" : field.Name[1..]))
 		.Append("now")
 		.ToArray();
 	private static readonly DateTime Epoch = new(1970, 1, 1);
