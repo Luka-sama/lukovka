@@ -1,8 +1,9 @@
-[gd_scene load_steps=7 format=3 uid="uid://bjb5h6c5d6tlu"]
+[gd_scene load_steps=8 format=3 uid="uid://bjb5h6c5d6tlu"]
 
 [ext_resource type="Script" path="res://TaskDetails/TaskDetails.cs" id="1_04yaj"]
-[ext_resource type="Script" path="res://scripts/ImprovedRichTextLabel.cs" id="3_an06n"]
-[ext_resource type="Script" path="res://TaskDetails/ImprovedTextEdit.cs" id="3_ybv28"]
+[ext_resource type="Script" path="res://controls/ImprovedRichTextLabel.cs" id="2_2uiv0"]
+[ext_resource type="Script" path="res://controls/ImprovedScrollContainer.cs" id="3_10tq3"]
+[ext_resource type="Script" path="res://controls/ImprovedTextEdit.cs" id="4_3v682"]
 [ext_resource type="Script" path="res://TaskDetails/Numeric.cs" id="4_57bjy"]
 [ext_resource type="Theme" uid="uid://cbr8y81ahw8w7" path="res://theme/dialog.tres" id="5_qn6up"]
 
@@ -71,6 +72,7 @@ size_flags_vertical = 0
 text = "👁"
 
 [node name="Complete" type="Button" parent="TaskDetailsContainer/PanelContainer/TaskDetailsShowing/HBoxContainer"]
+unique_name_in_owner = true
 custom_minimum_size = Vector2(40, 40)
 layout_mode = 2
 size_flags_vertical = 0
@@ -120,86 +122,104 @@ theme_override_font_sizes/bold_italics_font_size = 32
 bbcode_enabled = true
 fit_content = true
 selection_enabled = true
-script = ExtResource("3_an06n")
+script = ExtResource("2_2uiv0")
 
-[node name="Description" type="RichTextLabel" parent="TaskDetailsContainer/PanelContainer/TaskDetailsShowing"]
+[node name="DescriptionScrollContainer" type="ScrollContainer" parent="TaskDetailsContainer/PanelContainer/TaskDetailsShowing"]
+unique_name_in_owner = true
+custom_minimum_size = Vector2(0, 300)
+layout_mode = 2
+size_flags_vertical = 3
+script = ExtResource("3_10tq3")
+
+[node name="Description" type="RichTextLabel" parent="TaskDetailsContainer/PanelContainer/TaskDetailsShowing/DescriptionScrollContainer"]
 unique_name_in_owner = true
 layout_mode = 2
+size_flags_horizontal = 3
+size_flags_vertical = 3
 focus_mode = 2
 bbcode_enabled = true
 fit_content = true
 selection_enabled = true
-script = ExtResource("3_an06n")
+script = ExtResource("2_2uiv0")
 
-[node name="TaskDetailsEditing" type="GridContainer" parent="TaskDetailsContainer/PanelContainer"]
+[node name="TaskDetailsEditing" type="ScrollContainer" parent="TaskDetailsContainer/PanelContainer"]
 unique_name_in_owner = true
 visible = false
+custom_minimum_size = Vector2(0, 806)
 layout_mode = 2
+script = ExtResource("3_10tq3")
+
+[node name="Form" type="GridContainer" parent="TaskDetailsContainer/PanelContainer/TaskDetailsEditing"]
+unique_name_in_owner = true
+layout_mode = 2
+size_flags_horizontal = 3
+size_flags_vertical = 3
 columns = 2
 
-[node name="TextLabel" type="Label" parent="TaskDetailsContainer/PanelContainer/TaskDetailsEditing"]
+[node name="TextLabel" type="Label" parent="TaskDetailsContainer/PanelContainer/TaskDetailsEditing/Form"]
 layout_mode = 2
 text = "Text: "
 
-[node name="Text" type="LineEdit" parent="TaskDetailsContainer/PanelContainer/TaskDetailsEditing"]
+[node name="Text" type="LineEdit" parent="TaskDetailsContainer/PanelContainer/TaskDetailsEditing/Form"]
 layout_mode = 2
 size_flags_horizontal = 3
 
-[node name="DescriptionLabel" type="Label" parent="TaskDetailsContainer/PanelContainer/TaskDetailsEditing"]
+[node name="DescriptionLabel" type="Label" parent="TaskDetailsContainer/PanelContainer/TaskDetailsEditing/Form"]
 layout_mode = 2
 text = "Description: "
 
-[node name="Description" type="TextEdit" parent="TaskDetailsContainer/PanelContainer/TaskDetailsEditing"]
-custom_minimum_size = Vector2(0, 100)
+[node name="Description" type="TextEdit" parent="TaskDetailsContainer/PanelContainer/TaskDetailsEditing/Form"]
+custom_minimum_size = Vector2(0, 250)
 layout_mode = 2
-script = ExtResource("3_ybv28")
+wrap_mode = 1
+script = ExtResource("4_3v682")
 
-[node name="ParentLabel" type="Label" parent="TaskDetailsContainer/PanelContainer/TaskDetailsEditing"]
+[node name="ParentLabel" type="Label" parent="TaskDetailsContainer/PanelContainer/TaskDetailsEditing/Form"]
 layout_mode = 2
 text = "Parent: "
 
-[node name="Parent" type="LineEdit" parent="TaskDetailsContainer/PanelContainer/TaskDetailsEditing"]
+[node name="Parent" type="LineEdit" parent="TaskDetailsContainer/PanelContainer/TaskDetailsEditing/Form"]
 custom_minimum_size = Vector2(100, 0)
 layout_mode = 2
 size_flags_horizontal = 0
 script = ExtResource("4_57bjy")
 
-[node name="DateLabel" type="Label" parent="TaskDetailsContainer/PanelContainer/TaskDetailsEditing"]
+[node name="DateLabel" type="Label" parent="TaskDetailsContainer/PanelContainer/TaskDetailsEditing/Form"]
 layout_mode = 2
 text = "Date: "
 
-[node name="Date" type="LineEdit" parent="TaskDetailsContainer/PanelContainer/TaskDetailsEditing"]
+[node name="Date" type="LineEdit" parent="TaskDetailsContainer/PanelContainer/TaskDetailsEditing/Form"]
 layout_mode = 2
 
-[node name="StartDateLabel" type="Label" parent="TaskDetailsContainer/PanelContainer/TaskDetailsEditing"]
+[node name="StartDateLabel" type="Label" parent="TaskDetailsContainer/PanelContainer/TaskDetailsEditing/Form"]
 layout_mode = 2
 text = "Start date: "
 
-[node name="StartDate" type="LineEdit" parent="TaskDetailsContainer/PanelContainer/TaskDetailsEditing"]
+[node name="StartDate" type="LineEdit" parent="TaskDetailsContainer/PanelContainer/TaskDetailsEditing/Form"]
 layout_mode = 2
 
-[node name="CompletedLabel" type="Label" parent="TaskDetailsContainer/PanelContainer/TaskDetailsEditing"]
+[node name="CompletedLabel" type="Label" parent="TaskDetailsContainer/PanelContainer/TaskDetailsEditing/Form"]
 layout_mode = 2
 text = "Completed: "
 
-[node name="Completed" type="LineEdit" parent="TaskDetailsContainer/PanelContainer/TaskDetailsEditing"]
+[node name="Completed" type="LineEdit" parent="TaskDetailsContainer/PanelContainer/TaskDetailsEditing/Form"]
 layout_mode = 2
 
-[node name="RepeatingEveryLabel" type="Label" parent="TaskDetailsContainer/PanelContainer/TaskDetailsEditing"]
+[node name="RepeatingEveryLabel" type="Label" parent="TaskDetailsContainer/PanelContainer/TaskDetailsEditing/Form"]
 layout_mode = 2
 text = "Repeating every: "
 
-[node name="RepeatingEvery" type="LineEdit" parent="TaskDetailsContainer/PanelContainer/TaskDetailsEditing"]
+[node name="RepeatingEvery" type="LineEdit" parent="TaskDetailsContainer/PanelContainer/TaskDetailsEditing/Form"]
 custom_minimum_size = Vector2(100, 0)
 layout_mode = 2
 size_flags_horizontal = 0
 script = ExtResource("4_57bjy")
 
-[node name="RepeatingIntervalLabel" type="Label" parent="TaskDetailsContainer/PanelContainer/TaskDetailsEditing"]
+[node name="RepeatingIntervalLabel" type="Label" parent="TaskDetailsContainer/PanelContainer/TaskDetailsEditing/Form"]
 layout_mode = 2
 text = "Repeating interval: "
 
-[node name="RepeatingInterval" type="LineEdit" parent="TaskDetailsContainer/PanelContainer/TaskDetailsEditing"]
+[node name="RepeatingInterval" type="LineEdit" parent="TaskDetailsContainer/PanelContainer/TaskDetailsEditing/Form"]
 custom_minimum_size = Vector2(100, 0)
 layout_mode = 2
 size_flags_horizontal = 0
@@ -207,74 +227,74 @@ script = ExtResource("4_57bjy")
 MinValue = 0
 MaxValue = 5
 
-[node name="RepeatingFromCompletedLabel" type="Label" parent="TaskDetailsContainer/PanelContainer/TaskDetailsEditing"]
+[node name="RepeatingFromCompletedLabel" type="Label" parent="TaskDetailsContainer/PanelContainer/TaskDetailsEditing/Form"]
 layout_mode = 2
 text = "From completed:"
 
-[node name="RepeatingFromCompleted" type="CheckBox" parent="TaskDetailsContainer/PanelContainer/TaskDetailsEditing"]
+[node name="RepeatingFromCompleted" type="CheckBox" parent="TaskDetailsContainer/PanelContainer/TaskDetailsEditing/Form"]
 layout_mode = 2
 
-[node name="PriorityLabel" type="Label" parent="TaskDetailsContainer/PanelContainer/TaskDetailsEditing"]
+[node name="PriorityLabel" type="Label" parent="TaskDetailsContainer/PanelContainer/TaskDetailsEditing/Form"]
 layout_mode = 2
 text = "Priority: "
 
-[node name="Priority" type="LineEdit" parent="TaskDetailsContainer/PanelContainer/TaskDetailsEditing"]
+[node name="Priority" type="LineEdit" parent="TaskDetailsContainer/PanelContainer/TaskDetailsEditing/Form"]
 custom_minimum_size = Vector2(100, 0)
 layout_mode = 2
 size_flags_horizontal = 0
 script = ExtResource("4_57bjy")
 
-[node name="OrderLabel" type="Label" parent="TaskDetailsContainer/PanelContainer/TaskDetailsEditing"]
+[node name="OrderLabel" type="Label" parent="TaskDetailsContainer/PanelContainer/TaskDetailsEditing/Form"]
 layout_mode = 2
 text = "Order: "
 
-[node name="Order" type="LineEdit" parent="TaskDetailsContainer/PanelContainer/TaskDetailsEditing"]
+[node name="Order" type="LineEdit" parent="TaskDetailsContainer/PanelContainer/TaskDetailsEditing/Form"]
 custom_minimum_size = Vector2(100, 0)
 layout_mode = 2
 size_flags_horizontal = 0
 script = ExtResource("4_57bjy")
 IsDouble = true
 
-[node name="PointsLabel" type="Label" parent="TaskDetailsContainer/PanelContainer/TaskDetailsEditing"]
+[node name="PointsLabel" type="Label" parent="TaskDetailsContainer/PanelContainer/TaskDetailsEditing/Form"]
 layout_mode = 2
 text = "Points: "
 
-[node name="Points" type="LineEdit" parent="TaskDetailsContainer/PanelContainer/TaskDetailsEditing"]
+[node name="Points" type="LineEdit" parent="TaskDetailsContainer/PanelContainer/TaskDetailsEditing/Form"]
 custom_minimum_size = Vector2(100, 0)
 layout_mode = 2
 size_flags_horizontal = 0
 script = ExtResource("4_57bjy")
 MinValue = 0
 
-[node name="PointsDoneLabel" type="Label" parent="TaskDetailsContainer/PanelContainer/TaskDetailsEditing"]
+[node name="PointsDoneLabel" type="Label" parent="TaskDetailsContainer/PanelContainer/TaskDetailsEditing/Form"]
 layout_mode = 2
 text = "Points done: "
 
-[node name="PointsDone" type="LineEdit" parent="TaskDetailsContainer/PanelContainer/TaskDetailsEditing"]
+[node name="PointsDone" type="LineEdit" parent="TaskDetailsContainer/PanelContainer/TaskDetailsEditing/Form"]
 custom_minimum_size = Vector2(100, 0)
 layout_mode = 2
 size_flags_horizontal = 0
 script = ExtResource("4_57bjy")
 
-[node name="IsFolderLabel" type="Label" parent="TaskDetailsContainer/PanelContainer/TaskDetailsEditing"]
+[node name="IsFolderLabel" type="Label" parent="TaskDetailsContainer/PanelContainer/TaskDetailsEditing/Form"]
 layout_mode = 2
 text = "Is folder: "
 
-[node name="IsFolder" type="CheckBox" parent="TaskDetailsContainer/PanelContainer/TaskDetailsEditing"]
+[node name="IsFolder" type="CheckBox" parent="TaskDetailsContainer/PanelContainer/TaskDetailsEditing/Form"]
 layout_mode = 2
 size_flags_horizontal = 0
 
-[node name="TagsLabel" type="Label" parent="TaskDetailsContainer/PanelContainer/TaskDetailsEditing"]
+[node name="TagsLabel" type="Label" parent="TaskDetailsContainer/PanelContainer/TaskDetailsEditing/Form"]
 layout_mode = 2
 text = "Tags: "
 
-[node name="Tags" type="LineEdit" parent="TaskDetailsContainer/PanelContainer/TaskDetailsEditing"]
+[node name="Tags" type="LineEdit" parent="TaskDetailsContainer/PanelContainer/TaskDetailsEditing/Form"]
 layout_mode = 2
 
-[node name="Control" type="Control" parent="TaskDetailsContainer/PanelContainer/TaskDetailsEditing"]
+[node name="Control" type="Control" parent="TaskDetailsContainer/PanelContainer/TaskDetailsEditing/Form"]
 layout_mode = 2
 
-[node name="SaveTask" type="Button" parent="TaskDetailsContainer/PanelContainer/TaskDetailsEditing"]
+[node name="SaveTask" type="Button" parent="TaskDetailsContainer/PanelContainer/TaskDetailsEditing/Form"]
 layout_mode = 2
 size_flags_horizontal = 0
 text = "Save task"
@@ -298,6 +318,6 @@ dialog_close_on_escape = false
 [connection signal="pressed" from="TaskDetailsContainer/PanelContainer/TaskDetailsShowing/HBoxContainer/Complete" to="." method="CompleteTask"]
 [connection signal="pressed" from="TaskDetailsContainer/PanelContainer/TaskDetailsShowing/HBoxContainer/Edit" to="." method="EditTask"]
 [connection signal="pressed" from="TaskDetailsContainer/PanelContainer/TaskDetailsShowing/HBoxContainer/Delete" to="." method="ConfirmDelete"]
-[connection signal="pressed" from="TaskDetailsContainer/PanelContainer/TaskDetailsEditing/SaveTask" to="." method="SaveTask"]
+[connection signal="pressed" from="TaskDetailsContainer/PanelContainer/TaskDetailsEditing/Form/SaveTask" to="." method="SaveTask"]
 [connection signal="confirmed" from="ConfirmDelete" to="." method="DeleteTask"]
 [connection signal="confirmed" from="ConfirmClose" to="." method="HideTask"]

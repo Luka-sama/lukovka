@@ -1,7 +1,7 @@
 [gd_scene load_steps=4 format=3 uid="uid://fjvbo32hhmms"]
 
 [ext_resource type="Script" path="res://views/list/ListTask.cs" id="1_rcshf"]
-[ext_resource type="Script" path="res://scripts/ImprovedRichTextLabel.cs" id="2_tymi1"]
+[ext_resource type="Script" path="res://controls/ImprovedRichTextLabel.cs" id="2_tymi1"]
 
 [sub_resource type="StyleBoxFlat" id="StyleBoxFlat_ryiv1"]
 content_margin_left = 5.0

@@ -62,8 +62,9 @@ public partial class List : TaskView {
 			GetNode<Control>("%Spacer").Hide();
 			
 			Organizer.Organize();
-			if (Organizer.HasFilter("NoRootTaskParent")) {
-				_rootId = (Organizer.State.RootId == 0 ? 0 : App.Tasks[Organizer.State.RootId].Parent);
+			if (Organizer.HasFilter("NoRootTaskParent") && Organizer.State.RootId != 0 &&
+			    !Organizer.HasFilter("NoHierarchy")) {
+				_rootId = App.Tasks[Organizer.State.RootId].Parent;
 			} else {
 				_rootId = 0;
 			}
@@ -110,7 +111,7 @@ public partial class List : TaskView {
 			}
 		} else if (_isNested && tasks.Count == 0) {
 			Hide();
-		} else if (_isNested || Organizer.State.RootId != 0 || !string.IsNullOrEmpty(Organizer.State.GroupBy)) {
+		} else if (_isNested || Organizer.State.RootId != 0 || Organizer.HasFilter("NoHierarchy")) {
 			GetNode<Control>("%NewTask").Hide();
 		} else {
 			GetNode<Control>("%NewTask").Show();

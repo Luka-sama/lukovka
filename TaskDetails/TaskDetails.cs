@@ -8,11 +8,15 @@ using Godot;
 public partial class TaskDetails : Control {
 	private Task _task;
 	private Control _panel;
+	private GridContainer _form;
 
 	public override void _Ready() {
 		_panel = GetNode<Control>("%TaskDetailsContainer");
-		var form = GetNode<Control>("%TaskDetailsEditing");
-		foreach (var child in form.GetChildren()) {
+		_form = GetNode<GridContainer>("%Form");
+		if (App.IsMobile()) {
+			_form.Columns = 1;
+		}
+		foreach (var child in _form.GetChildren()) {
 			if (child is LineEdit lineEdit) {
 				lineEdit.TextSubmitted += SubmittedTask;
 			}
@@ -20,7 +24,7 @@ public partial class TaskDetails : Control {
 	}
 	
 	public override void _UnhandledInput(InputEvent @event) {
-		if (@event is InputEventMouseButton click && click.IsPressed() &&
+		if (!App.IsMobile() && @event is InputEventMouseButton click && click.IsPressed() &&
 			!_panel.GetGlobalRect().HasPoint(click.GlobalPosition)) {
 			if (GetNode<Control>("%TaskDetailsEditing").Visible && SaveOrTestTask(true)) {
 				var confirmClose = GetNode<ConfirmationDialog>("%ConfirmClose");
@@ -31,18 +35,18 @@ public partial class TaskDetails : Control {
 		}
 	}
 
-	public void ShowTask(Task task) {
+	public async void ShowTask(Task task) {
 		if (Visible) {
 			HideTask();
 		}
 		Visible = true;
 		GetTree().Paused = true;
 		_task = task;
-		if (App.View is not List) {
-			GetNode<Button>("%SetAsRoot").Hide();
+		if (task.IsFolder) {
+			GetNode<Button>("%Complete").Hide();
 		}
 		GetNode<Label>("%Id").Text = $"ID: {task.Id}";
-		
+
 		var info = $"[b]Created:[/b] {task.Created.ToLocalTime()}.";
 		if (task.Updated != DateTime.MinValue && (task.Updated - task.Created).TotalSeconds >= 1) {
 			info += $" [b]Updated:[/b] {task.Updated.ToLocalTime()}.";
@@ -65,7 +69,15 @@ public partial class TaskDetails : Control {
 			text = "[s][i]" + text + "[/i][/s]";
 		}
 		GetNode<ImprovedRichTextLabel>("%Text").SetText(text);
-		GetNode<ImprovedRichTextLabel>("%Description").SetText(task.Description);
+		
+		var descriptionLabel = GetNode<ImprovedRichTextLabel>("%Description");
+		descriptionLabel.SetText(task.Description);
+		await ToSignal(GetTree(), SceneTree.SignalName.ProcessFrame);
+		var scrollContainer = GetNode<ScrollContainer>("%DescriptionScrollContainer");
+		scrollContainer.CustomMinimumSize = new Vector2(
+			scrollContainer.CustomMinimumSize.X,
+			Mathf.Min(500, descriptionLabel.GetContentHeight())
+		);
 	}
 
 	private void HideTask() {
@@ -95,27 +107,25 @@ public partial class TaskDetails : Control {
 
 	private void EditTask() {
 		GetNode<Control>("%TaskDetailsShowing").Hide();
-		var form = GetNode<Control>("%TaskDetailsEditing");
-		form.Show();
-		form.GetNode<LineEdit>("Text").GrabFocus();
+		GetNode<Control>("%TaskDetailsEditing").Show();
+		if (!App.IsMobile()) {
+			_form.GetNode<LineEdit>("Text").GrabFocus();
+		}
 
-		var children = form.GetChildren();
+		var children = _form.GetChildren();
 		foreach (var child in children.Where((_, index) => index % 2 == 1 && index < children.Count - 2)) {
 			var value = _task.GetType().GetField(child.Name)!.GetValue(_task);
 			
 			switch (child) {
 				case LineEdit lineEdit:
-					if (value is DateTime date) {
-						lineEdit.Text = (
+					lineEdit.Text = value switch {
+						DateTime date => (
 							date != DateTime.MinValue ? date.ToLocalTime().ToString(CultureInfo.CurrentCulture) : ""
-						);
-					} else if (value is List<string> list) {
-						lineEdit.Text = string.Join(" ", list);
-					} else if (value is double number) {
-						lineEdit.Text = number.ToString(CultureInfo.InvariantCulture);
-					} else {
-						lineEdit.Text = value?.ToString();
-					}
+						),
+						List<string> list => string.Join(" ", list),
+						double number => number.ToString(CultureInfo.InvariantCulture),
+						_ => value?.ToString(),
+					};
 					break;
 				case TextEdit textEdit:
 					textEdit.Text = value?.ToString();
@@ -144,10 +154,9 @@ public partial class TaskDetails : Control {
 	}
 
 	private bool SaveOrTestTask(bool onlyTest = false) {
-		var form = GetNode<Control>("%TaskDetailsEditing");
 		var hasChanged = false;
 		var oldParent = _task.Parent;
-		foreach (var child in form.GetChildren()) {
+		foreach (var child in _form.GetChildren()) {
 			if (child is Label) {
 				continue;
 			}

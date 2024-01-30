@@ -115,6 +115,7 @@ public partial class Organizer : Control {
 		if (filterName == "NoHierarchy") {
 			RemoveFilter("NoTasksWithChildren");
 			State.GroupBy = "";
+			_groupingMenu.Select(0);
 		}
 		
 		State.SelectedFilters.Remove(filterName);
@@ -134,6 +135,9 @@ public partial class Organizer : Control {
 	}
 
 	private static bool SumFilter(Task task) {
+		if (!IsInstanceValid(Filter)) {
+			return false;
+		}
 		Filter.SetTask(task);
 		var result = AllFilters
 			.Where(filterInfo => HasFilter(filterInfo.Name))
@@ -207,9 +211,7 @@ public partial class Organizer : Control {
 
 	private static void ChangeSort(long index) {
 		var sortName = AllSorts[(int)index - 1].Name;
-		if (State.SelectedSort == sortName) {
-			State.DescendingSort = !State.DescendingSort;
-		}
+		State.DescendingSort = (State.SelectedSort == sortName && !State.DescendingSort);
 		State.SelectedSort = sortName;
 		App.View.Render();
 	}
@@ -386,6 +388,7 @@ public partial class Organizer : Control {
 		ApplyExpand();
 		RegenerateFilterList();
 		UpdateStateButtons();
+		List.FocusTask(State.RootId);
 	}
 
 	private static void ChangeState(string stateName) {

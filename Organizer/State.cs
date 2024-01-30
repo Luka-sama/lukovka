@@ -1,4 +1,6 @@
 using System.Collections.Generic;
+using System.Diagnostics.Tracing;
+using System.Linq;
 using Godot;
 using Newtonsoft.Json;
 
@@ -8,7 +10,7 @@ public class State {
 		SelectedFilters = { "NotCompleted" },
 	};
 	public string Name;
-	public readonly List<string> SelectedFilters = new();
+	public List<string> SelectedFilters = new();
 	public string GroupBy = "";
 	public string SelectedSort = "Standard";
 	public int RootId;
@@ -23,11 +25,16 @@ public class State {
 	
 	public bool Equals(State state) {
 		string savedNameA = Name, savedNameB = state.Name;
+		List<string> filtersA = SelectedFilters.ToList(), filtersB = state.SelectedFilters.ToList();
 		Name = "";
 		state.Name = "";
+		SelectedFilters.Sort();
+		state.SelectedFilters.Sort();
 		var result = (Serialize() == state.Serialize());
 		Name = savedNameA;
 		state.Name = savedNameB;
+		SelectedFilters = filtersA;
+		state.SelectedFilters = filtersB;
 		return result;
 	}
 
@@ -45,7 +52,6 @@ public class State {
 	}
 
 	private string Serialize() {
-		SelectedFilters.Sort();
 		return JsonConvert.SerializeObject(this);
 	}
 }

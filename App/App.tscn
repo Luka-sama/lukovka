@@ -3,7 +3,7 @@
 [ext_resource type="Theme" uid="uid://dpcikkauvgp38" path="res://theme/theme.tres" id="1_e27dq"]
 [ext_resource type="Script" path="res://App/App.cs" id="2_0260a"]
 [ext_resource type="PackedScene" uid="uid://dtdied0lur2jk" path="res://Organizer/Organizer.tscn" id="3_0facv"]
-[ext_resource type="Script" path="res://scripts/ImprovedScrollContainer.cs" id="3_6h4pu"]
+[ext_resource type="Script" path="res://controls/ImprovedScrollContainer.cs" id="3_6h4pu"]
 [ext_resource type="PackedScene" uid="uid://tuck2brej4xl" path="res://views/list/List.tscn" id="3_j3uqi"]
 [ext_resource type="PackedScene" uid="uid://bjb5h6c5d6tlu" path="res://TaskDetails/TaskDetails.tscn" id="4_lm3yq"]
 [ext_resource type="Theme" uid="uid://cbr8y81ahw8w7" path="res://theme/dialog.tres" id="6_oqo0e"]
@@ -21,6 +21,7 @@ theme = ExtResource("1_e27dq")
 script = ExtResource("2_0260a")
 
 [node name="MarginContainer" type="MarginContainer" parent="."]
+process_mode = 1
 layout_mode = 1
 anchors_preset = 15
 anchor_right = 1.0
@@ -53,7 +54,6 @@ layout_mode = 2
 
 [node name="View" parent="MarginContainer/ScrollContainer/VBoxContainer" instance=ExtResource("3_j3uqi")]
 unique_name_in_owner = true
-process_mode = 1
 layout_mode = 2
 size_flags_horizontal = 1
 size_flags_vertical = 1

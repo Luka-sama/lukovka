@@ -52,19 +52,35 @@ public partial class ListTask : Control {
 			text = $"[s][i]{text}[/i][/s]";
 		}
 		
-		if (_task.Date != DateTime.MinValue) {
+		if (_task.Date != DateTime.MinValue || _task.StartDate != DateTime.MinValue) {
+			var hasDate = (_task.Date != DateTime.MinValue);
+			var hasStartDate = (_task.StartDate != DateTime.MinValue);
+			var startDate = _task.StartDate.ToLocalTime();
 			var date = _task.Date.ToLocalTime();
-			if (date.Year == DateTime.Now.Year && date.Hour == 0 && date.Minute == 0 && date.Second == 0) {
-				text += $" [b]{date:dd.MM}[/b]";
-			} else if (date.Hour == 0 && date.Minute == 0 && date.Second == 0) {
-				text += $" [b]{date:dd.MM.y}[/b]";
-			} else if (date.Year == DateTime.Now.Year && date.Second == 0) {
-				text += $" [b]{date:dd.MM HH:mm}[/b]";
-			} else if (date.Second == 0) {
-				text += $" [b]{date:dd.MM.y HH:mm}[/b]";
-			} else {
-				text += $" [b]{date:dd.MM.y HH:mm:ss}[/b]";
+			if (!hasDate) {
+				hasStartDate = false;
+				date = startDate;
+				startDate = DateTime.MinValue;
 			}
+			var format = GetDatetimeFormat(date);
+			if (hasStartDate) {
+				format = Mathf.Max(format, GetDatetimeFormat(startDate));
+			}
+			text += " [b]" + (!hasDate ? "[i][color=#6b578c]" : "");
+			var sameDate = (
+				startDate.Day == date.Day && startDate.Month == date.Month && startDate.Year == date.Year
+			);
+			text += format switch {
+				0 => (hasStartDate ? $"{startDate:dd.MM} – " : "") + $"{date:dd.MM}",
+				1 => (hasStartDate ? $"{startDate:dd.MM.y} – " : "") + $"{date:dd.MM.y}",
+				2 when sameDate => $"{startDate:dd.MM HH:mm}–{date:HH:mm}",
+				2 => (hasStartDate ? $"{startDate:dd.MM HH:mm} – " : "") + $"{date:dd.MM HH:mm}",
+				3 when sameDate => $"{startDate:dd.MM.y HH:mm}–{date:HH:mm}",
+				3 => (hasStartDate ? $"{startDate:dd.MM.y HH:mm} – " : "") + $"{date:dd.MM.y HH:mm}",
+				_ when sameDate => $"{startDate:dd.MM.y HH:mm:ss}–{date:HH:mm:ss}",
+				_ => (hasStartDate ? $"{startDate:dd.MM.y HH:mm:ss} – " : "") + $"{date:dd.MM.y HH:mm:ss}",
+			};
+			text += (!hasDate ? "[/color][/i]" : "") + "[/b]";
 		}
 
 		if (_task.Points != 0 && _task.PointsDone == 0) {
@@ -84,6 +100,20 @@ public partial class ListTask : Control {
 		}
 		
 		return text;
+	}
+
+	private int GetDatetimeFormat(DateTime date) {
+		if (date.Year == DateTime.Now.Year && date.Hour == 0 && date.Minute == 0 && date.Second == 0) {
+			return 0;
+		} else if (date.Hour == 0 && date.Minute == 0 && date.Second == 0) {
+			return 1;
+		} else if (date.Year == DateTime.Now.Year && date.Second == 0) {
+			return 2;
+		} else if (date.Second == 0) {
+			return 3;
+		} else {
+			return 4;
+		}
 	}
 
 	private void CompleteTask() {
