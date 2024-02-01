@@ -73,8 +73,8 @@ public class Task {
 		}
 		var newTask = Clone();
 		newTask.Completed = DateTime.MinValue;
-		var startDate = (RepeatingFromCompleted && StartDate != DateTime.MinValue ? Completed : StartDate);
-		var date = (RepeatingFromCompleted && Date != DateTime.MinValue ? Completed : Date);
+		var startDate = (RepeatingFromCompleted && StartDate != DateTime.MinValue ? DateTime.Now.Date : StartDate);
+		var date = (RepeatingFromCompleted && Date != DateTime.MinValue ? DateTime.Now.Date : Date);
 		if (RepeatingInterval == 1) {
 			newTask.StartDate = DateTime.MinValue;
 			newTask.Date = DateTime.MinValue;
