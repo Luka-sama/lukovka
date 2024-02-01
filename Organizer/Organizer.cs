@@ -8,16 +8,22 @@ using Godot;
 public partial class Organizer : Control {
 	public static List<Task> Tasks { get; private set; }
 	public static State State { get; private set; } = State.Default;
-	public static readonly Filter Filter = new();
+	private static readonly Sort Sort = new();
+	private static readonly Filter Filter = new();
+	private static readonly Group Group = new();
 	private static readonly Dictionary<string, State> States = new();
 	private static readonly MethodInfo[] AllSorts = typeof(Sort)
-		.GetMethods(BindingFlags.Static | BindingFlags.Public);
+		.GetMethods(BindingFlags.Instance | BindingFlags.Public)
+		.Where(method => method.DeclaringType == typeof(Sort))
+		.ToArray();
 	private static readonly MethodInfo[] AllFilters = typeof(Filter)
 		.GetMethods(BindingFlags.Instance | BindingFlags.Public)
 		.Where(method => method.DeclaringType == typeof(Filter))
 		.ToArray();
 	private static readonly MethodInfo[] AllGroupings = typeof(Group)
-		.GetMethods(BindingFlags.Static | BindingFlags.Public);
+		.GetMethods(BindingFlags.Instance | BindingFlags.Public)
+		.Where(method => method.DeclaringType == typeof(Group))
+		.ToArray();
 	private static FontFile _boldFont;
 	private static Control _states;
 	private static Control _stateManager;
@@ -28,47 +34,16 @@ public partial class Organizer : Control {
 	
 	public static void Organize() {
 		UpdateStateButtons();
-		
-		Tasks = App.Tasks.Values
-			.Where(HasFilter("NoRootTaskParent") ? IsChildOfRoot : WithHierarchy(IsChildOfRoot))
-			.Where(HasFilter("NoHierarchy") ? SumFilter : WithHierarchy(SumFilter))
-			.ToList();
-		
-		var sort = AllSorts.First(sort => sort.Name == State.SelectedSort);
-		Tasks.Sort((a, b) => {
-			var cmp = (int)sort.Invoke(null, new object[] { a, b })!;
-			if (State.DescendingSort && cmp != 0) {
-				cmp = (cmp == 1 ? -1 : 1);
-			}
-			return cmp;
-		});
+		Tasks = App.Tasks.Values.ToList();
+		FilterTasks();
+		SortTasks();
+		GroupTasks();
+	}
 
-		if (string.IsNullOrEmpty(State.GroupBy)) {
-			return;
-		}
-		var groups = new Dictionary<string, Task>();
-		var groupTasks = new List<Task>();
-		var nextId = -1;
-		var grouping = AllGroupings.First(grouping => grouping.Name == State.GroupBy);
-		foreach (var task in Tasks) {
-			var group = (string)grouping.Invoke(null, new object[] { task })!;
-			if (groups.TryGetValue(group, out var groupTask)) {
-				task.Group = groupTask.Id;
-				continue;
-			}
-
-			groupTask = new Task() {
-				Expanded = true,
-				Id = nextId,
-				Text = group,
-				IsFolder = true,
-			};
-			groupTasks.Add(groupTask);
-			task.Group = groupTask.Id;
-			groups.Add(group, groupTask);
-			nextId--;
-		}
-		Tasks.AddRange(groupTasks);
+	public static void Clear() {
+		Sort.Free();
+		Filter.Free();
+		Group.Free();
 	}
 
 	public override void _Ready() {
@@ -93,6 +68,7 @@ public partial class Organizer : Control {
 		States.Add(State.Name, State.Default);
 		AddStateButton(State.Name);
 		ApplyState(State, true);
+		UpdateStateButtons();
 		State.Name = "";
 	}
 
@@ -122,7 +98,70 @@ public partial class Organizer : Control {
 		AddStateButton(state.Name);
 		UpdateStateButtons();
 	}
-	
+
+	private static void FilterTasks() {
+		Tasks = Tasks
+			.Where(HasFilter("NoRootTaskParent") ? IsChildOfRoot : WithHierarchy(IsChildOfRoot))
+			.Where(HasFilter("NoHierarchy") ? SumFilter : WithHierarchy(SumFilter))
+			.ToList();
+	}
+
+	private static void SortTasks() {
+		MethodInfo sort = null;
+		if (!State.SelectedSort.StartsWith("@")) {
+			sort = AllSorts.First(sortInfo => sortInfo.Name == State.SelectedSort);
+		}
+		Tasks.Sort((a, b) => {
+			Sort.A = a;
+			Sort.B = b;
+			int cmp;
+			if (sort == null) {
+				cmp = Sort.Custom(State.SelectedSort[1..]);
+			} else {
+				cmp = (int)sort.Invoke(Sort, Array.Empty<object>())!;
+			}
+			return (State.DescendingSort ? -cmp : cmp);
+		});
+	}
+
+	private static void GroupTasks() {
+		if (string.IsNullOrEmpty(State.GroupBy)) {
+			return;
+		}
+		var groups = new Dictionary<string, Task>();
+		var groupTasks = new List<Task>();
+		var nextId = -1;
+		MethodInfo grouping = null;
+		if (!State.GroupBy.StartsWith("@")) {
+			grouping = AllGroupings.First(groupingInfo => groupingInfo.Name == State.GroupBy);
+		}
+		foreach (var task in Tasks) {
+			Group.Task = task;
+			string group;
+			if (grouping == null) {
+				group = Group.Custom(State.GroupBy[1..]);
+			} else {
+				group = (string)grouping.Invoke(Group, Array.Empty<object>())!;
+			}
+			if (groups.TryGetValue(group, out var groupTask)) {
+				task.Group = groupTask.Id;
+				continue;
+			}
+
+			groupTask = new Task() {
+				Expanded = true,
+				Id = nextId,
+				Text = group,
+				IsFolder = true,
+			};
+			groupTasks.Add(groupTask);
+			task.Group = groupTask.Id;
+			groups.Add(group, groupTask);
+			nextId--;
+		}
+		Tasks.AddRange(groupTasks);
+	}
+
 	private static Func<Task, bool> WithHierarchy(Func<Task, bool> filter) {
 		return task => filter(task) || task.Children.Any(WithHierarchy(filter));
 	}
@@ -131,10 +170,10 @@ public partial class Organizer : Control {
 		if (!IsInstanceValid(Filter)) {
 			return false;
 		}
-		Filter.SetTask(task);
+		Filter.Task = task;
 		var result = AllFilters
 			.Where(filterInfo => HasFilter(filterInfo.Name))
-			.All(filterInfo => (bool)filterInfo.Invoke(Filter, new object[] {})!);
+			.All(filterInfo => (bool)filterInfo.Invoke(Filter, Array.Empty<object>())!);
 		if (!result) {
 			return false;
 		}
@@ -291,9 +330,21 @@ public partial class Organizer : Control {
 		RegenerateFilterList();
 	}
 
+	private static void AddCustomSort(string customSort) {
+		State.DescendingSort = false;
+		State.SelectedSort = "@" + customSort;
+		App.View.Render();
+	}
+
 	private static void AddCustomFilter(string customFilter) {
 		State.SelectedFilters.Add("@" + customFilter);
 		AddFilterButton("@" + customFilter);
+		App.View.Render();
+	}
+
+	private static void AddCustomGroup(string customGroup) {
+		AddFilter("NoHierarchy");
+		State.GroupBy = "@" + customGroup;
 		App.View.Render();
 	}
 
@@ -368,7 +419,9 @@ public partial class Organizer : Control {
 		_sortMenu.Select(Array.IndexOf(AllSorts, sort) + 1);
 		
 		if (!string.IsNullOrEmpty(State.GroupBy)) {
-			var grouping = AllGroupings.First(grouping => grouping.Name == State.GroupBy);
+			var grouping = AllGroupings.First(
+				grouping => grouping.Name == (State.GroupBy.StartsWith("@") ? "Custom" : State.GroupBy)
+			);
 			_groupingMenu.Select(Array.IndexOf(AllGroupings, grouping) + 1);
 		} else {
 			_groupingMenu.Select(0);
@@ -376,7 +429,6 @@ public partial class Organizer : Control {
 		
 		ApplyExpand();
 		RegenerateFilterList();
-		UpdateStateButtons();
 		List.FocusTask(State.RootId);
 	}
 

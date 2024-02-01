@@ -1,15 +1,31 @@
 using System;
+using Godot;
 
-public class Group {
-	public static string ByDate(Task task) {
-		return DateToString(task.Date);
+public partial class Group : GodotObject {
+	public Task Task;
+	
+	public string ByDate() {
+		return DateToString(Task.Date);
 	}
 
-	public static string ByCompleted(Task task) {
-		return DateToString(task.Completed);
+	public string ByCompleted() {
+		return DateToString(Task.Completed);
+	}
+
+	public string ByPriority() {
+		return Task.Priority.ToString();
+	}
+	
+	public string Custom(string expressionString) {
+		return Customizer.CalcExpression(Task, expressionString, this, "");
+	}
+
+	private static string ToDate(int time) {
+		var dateTime = Customizer.Epoch.AddSeconds(time).ToLocalTime();
+		return DateToString(dateTime);
 	}
 
 	private static string DateToString(DateTime dateTime) {
-		return DateOnly.FromDateTime(dateTime.ToLocalTime()).ToString();
+		return $"{dateTime.ToLocalTime():dd.MM.y}";
 	}
 }

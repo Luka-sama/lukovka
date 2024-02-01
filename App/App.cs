@@ -29,7 +29,7 @@ public partial class App : Control {
 		if (@event is InputEventMouseButton click && click.IsPressed()) {
 			GetViewport().GuiGetFocusOwner()?.ReleaseFocus();
 		} else if (@event.IsActionPressed("quit")) {
-			Organizer.Filter.Free();
+			Organizer.Clear();
 			GetTree().Quit();
 		}
 	}

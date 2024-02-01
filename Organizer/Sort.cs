@@ -1,44 +1,57 @@
 using System;
+using Godot;
 
-public class Sort {
-	public static int Standard(Task a, Task b) {
-		if (a.Completed == DateTime.MinValue && b.Completed != DateTime.MinValue) {
+public partial class Sort : GodotObject {
+	public Task A;
+	public Task B;
+	
+	public int Standard() {
+		if (A.Completed == DateTime.MinValue && B.Completed != DateTime.MinValue) {
 			return -1;
-		} else if (a.Completed != DateTime.MinValue && b.Completed == DateTime.MinValue) {
+		} else if (A.Completed != DateTime.MinValue && B.Completed == DateTime.MinValue) {
 			return 1;
 		}
 
-		var orderA = (a.Order != 0 ? a.Order : a.Id);
-		var orderB = (b.Order != 0 ? b.Order : b.Id);
+		var orderA = (A.Order != 0 ? A.Order : A.Id);
+		var orderB = (B.Order != 0 ? B.Order : B.Id);
 		return (orderA > orderB ? 1 : -1);
 	}
 
-	public static int History(Task a, Task b) {
-		if (a.Completed == DateTime.MinValue && b.Completed != DateTime.MinValue) {
+	public int History() {
+		if (A.Completed == DateTime.MinValue && B.Completed != DateTime.MinValue) {
 			return 1;
-		} else if (a.Completed != DateTime.MinValue && b.Completed == DateTime.MinValue) {
+		} else if (A.Completed != DateTime.MinValue && B.Completed == DateTime.MinValue) {
 			return -1;
 		}
 		
-		return Standard(a, b);
+		return Standard();
 	}
 
-	public static int ByDate(Task a, Task b) {
-		return ByAnyDate(a, b, a.Date, b.Date);
+	public int ByDate() {
+		return ByAnyDate(A.Date, B.Date);
 	}
 
-	public static int ByCompleted(Task a, Task b) {
-		return ByAnyDate(a, b, a.Completed, b.Completed);
+	public int ByCompleted() {
+		return ByAnyDate(A.Completed, B.Completed);
 	}
 
-	public static int ByPriority(Task a, Task b) {
-		if (a.Priority == b.Priority) {
-			return Standard(a, b);
+	public int ByPriority() {
+		if (A.Priority == B.Priority) {
+			return Standard();
 		}
-		return (a.Priority > b.Priority ? 1 : -1);
+		return (A.Priority > B.Priority ? -1 : 1);
 	}
 
-	private static int ByAnyDate(Task a, Task b, DateTime dateA, DateTime dateB) {
+	public int Custom(string expressionString) {
+		var orderA = Customizer.CalcExpression(A, expressionString, this, 0f);
+		var orderB = Customizer.CalcExpression(B, expressionString, this, 0f);
+		if (Mathf.IsEqualApprox(orderA, orderB)) {
+			return Standard();
+		}
+		return (orderA > orderB ? -1 : 1);
+	}
+
+	private int ByAnyDate(DateTime dateA, DateTime dateB) {
 		if (dateA != DateTime.MinValue && dateB == DateTime.MinValue) {
 			return -1;
 		} else if (dateA == DateTime.MinValue && dateB != DateTime.MinValue) {
@@ -49,6 +62,6 @@ public class Sort {
 			return (dateA < dateB ? 1 : -1);
 		}
 
-		return Standard(a, b);
+		return Standard();
 	}
 }
