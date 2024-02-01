@@ -7,15 +7,21 @@ public partial class ListTask : Control {
 	public void SetTask(Task task) {
 		_task = task;
 		
-		var textNode = GetNode<ImprovedRichTextLabel>("%Text");
-		textNode.SetText(GetText());
-		
 		if (task.IsFolder || Organizer.HasFilter("NoCompleteButton")) {
 			GetNode<Control>("%Complete").Hide();
 			GetNode<Control>("%Spacer").Hide();
 		} else {
 			GetNode<Control>("%Complete").Show();
 			GetNode<Control>("%Spacer").Show();
+		}
+
+		var textNode = GetNode<ImprovedRichTextLabel>("%Text");
+		textNode.SetText(GetText());
+
+		var progressBar = GetNode<ProgressBar>("%ProgressBar");
+		progressBar.Visible = Organizer.HasFilter("WithProgressBar") && task.Id > 0;
+		if (progressBar.Visible) {
+			progressBar.Value = Mathf.Floor(100f * task.CountPointsDone() / task.CountPoints());
 		}
 
 		var expandButton = GetNode<Button>("%Expand");

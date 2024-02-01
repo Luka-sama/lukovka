@@ -48,6 +48,12 @@ bbcode_enabled = true
 fit_content = true
 script = ExtResource("2_tymi1")
 
+[node name="ProgressBar" type="ProgressBar" parent="."]
+unique_name_in_owner = true
+custom_minimum_size = Vector2(100, 0)
+layout_mode = 2
+size_flags_vertical = 1
+
 [node name="Expand" type="Button" parent="."]
 unique_name_in_owner = true
 custom_minimum_size = Vector2(32, 40)

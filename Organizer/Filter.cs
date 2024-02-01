@@ -76,6 +76,10 @@ public partial class Filter : GodotObject {
 		return true;
 	}
 
+	public bool WithProgressBar() {
+		return true;
+	}
+
 	public bool Custom(string expressionString) {
 		var values = Fields
 			.Select(field => {
