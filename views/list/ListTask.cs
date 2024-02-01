@@ -122,13 +122,13 @@ public partial class ListTask : Control {
 
 	private void OpenTask(InputEvent @event) {
 		if (_task.Id > 0 && @event is InputEventMouseButton click && click.IsPressed() && click.DoubleClick) {
-			App.ShowDetails(_task);
+			TaskDetails.ShowTask(_task);
 		}
 	}
 
 	private void ExpandTask() {
 		if (Organizer.HasFilter("NoHierarchy")) {
-			App.ShowError("You can't expand a task with no hierarchy.");
+			ErrorDialog.Show("You can't expand a task with no hierarchy.");
 			return;
 		}
 		

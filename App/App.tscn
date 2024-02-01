@@ -1,4 +1,4 @@
-[gd_scene load_steps=8 format=3 uid="uid://ct3b33bysfx16"]
+[gd_scene load_steps=11 format=3 uid="uid://ct3b33bysfx16"]
 
 [ext_resource type="Theme" uid="uid://dpcikkauvgp38" path="res://theme/theme.tres" id="1_e27dq"]
 [ext_resource type="Script" path="res://App/App.cs" id="2_0260a"]
@@ -7,6 +7,9 @@
 [ext_resource type="PackedScene" uid="uid://tuck2brej4xl" path="res://views/list/List.tscn" id="3_j3uqi"]
 [ext_resource type="PackedScene" uid="uid://bjb5h6c5d6tlu" path="res://TaskDetails/TaskDetails.tscn" id="4_lm3yq"]
 [ext_resource type="Theme" uid="uid://cbr8y81ahw8w7" path="res://theme/dialog.tres" id="6_oqo0e"]
+[ext_resource type="Script" path="res://controls/PromptDialog.cs" id="8_oy25t"]
+[ext_resource type="Script" path="res://controls/ErrorDialog.cs" id="8_wamnq"]
+[ext_resource type="Script" path="res://controls/ConfirmDialog.cs" id="9_cv6ne"]
 
 [node name="App" type="Control"]
 process_mode = 3
@@ -63,9 +66,32 @@ unique_name_in_owner = true
 visible = false
 layout_mode = 1
 
-[node name="Error" type="AcceptDialog" parent="."]
-unique_name_in_owner = true
+[node name="ErrorDialog" type="AcceptDialog" parent="."]
 title = "Error"
 size = Vector2i(400, 100)
 theme = ExtResource("6_oqo0e")
 dialog_autowrap = true
+script = ExtResource("8_wamnq")
+
+[node name="PromptDialog" type="ConfirmationDialog" parent="."]
+title = "Enter the custom filter"
+size = Vector2i(300, 100)
+theme = ExtResource("6_oqo0e")
+script = ExtResource("8_oy25t")
+
+[node name="PromptAnswer" type="LineEdit" parent="PromptDialog"]
+unique_name_in_owner = true
+offset_left = 8.0
+offset_top = 8.0
+offset_right = 292.0
+offset_bottom = 51.0
+
+[node name="ConfirmDialog" type="ConfirmationDialog" parent="."]
+title = "Confirm"
+size = Vector2i(300, 100)
+theme = ExtResource("6_oqo0e")
+script = ExtResource("9_cv6ne")
+
+[connection signal="confirmed" from="PromptDialog" to="PromptDialog" method="OnConfirmed"]
+[connection signal="text_submitted" from="PromptDialog/PromptAnswer" to="PromptDialog" method="OnTextSubmitted"]
+[connection signal="confirmed" from="ConfirmDialog" to="ConfirmDialog" method="OnConfirmed"]

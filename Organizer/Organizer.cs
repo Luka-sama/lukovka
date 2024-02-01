@@ -25,10 +25,6 @@ public partial class Organizer : Control {
 	private static OptionButton _sortMenu;
 	private static OptionButton _groupingMenu;
 	private static Button _expandButton;
-	private static ConfirmationDialog _confirmStateDelete;
-	private static ConfirmationDialog _enterStateName;
-	private static ConfirmationDialog _enterCustomFilter;
-	private static string _stateToRemove;
 	
 	public static void Organize() {
 		UpdateStateButtons();
@@ -80,10 +76,7 @@ public partial class Organizer : Control {
 		_states = GetNode<Control>("%States");
 		_stateManager = GetNode<Control>("%StateManager");
 		_expandButton = GetNode<Button>("%Expand");
-		_confirmStateDelete = GetNode<ConfirmationDialog>("%ConfirmStateDelete");
-		_enterStateName = GetNode<ConfirmationDialog>("%EnterStateName");
-		_enterCustomFilter = GetNode<ConfirmationDialog>("%EnterCustomFilter");
-		
+
 		_sortMenu = GetNode<OptionButton>("%Sort");
 		foreach (var sort in AllSorts) {
 			_sortMenu.AddItem(TransformName(sort.Name));
@@ -168,7 +161,7 @@ public partial class Organizer : Control {
 			return true;
 		} else if (!App.Tasks.ContainsKey(task.Parent)) {
 			if (task.Parent != 0) {
-				App.ShowError($"Orphan task with ID {task.Id}.", true);
+				ErrorDialog.Show($"Orphan task with ID {task.Id}.", true);
 			}
 			return false;
 		}
@@ -193,7 +186,7 @@ public partial class Organizer : Control {
 
 	private static void ExpandTasks() {
 		if (HasFilter("NoHierarchy")) {
-			App.ShowError("You can't expand tasks with no hierarchy.");
+			ErrorDialog.Show("You can't expand tasks with no hierarchy.");
 			return;
 		}
 		
@@ -211,14 +204,26 @@ public partial class Organizer : Control {
 
 	private static void ChangeSort(long index) {
 		var sortName = AllSorts[(int)index - 1].Name;
+		if (sortName == "Custom") {
+			var startValue = (State.SelectedSort.StartsWith("@") ? State.SelectedSort[1..] : "");
+			PromptDialog.Show("Enter the custom sort", AddCustomSort, startValue);
+			return;
+		}
+		
 		State.DescendingSort = (State.SelectedSort == sortName && !State.DescendingSort);
 		State.SelectedSort = sortName;
 		App.View.Render();
 	}
 
 	private static void ChangeGrouping(long index) {
-		AddFilter("NoHierarchy");
 		var groupBy = AllGroupings[(int)index - 1].Name;
+		if (groupBy == "Custom") {
+			var startValue = (State.GroupBy.StartsWith("@") ? State.GroupBy[1..] : "");
+			PromptDialog.Show("Enter the custom grouping", AddCustomGroup, startValue);
+			return;
+		}
+		
+		AddFilter("NoHierarchy");
 		State.GroupBy = (State.GroupBy != groupBy ? groupBy : "");
 		if (string.IsNullOrEmpty(State.GroupBy)) {
 			_groupingMenu.Select(0);
@@ -242,17 +247,16 @@ public partial class Organizer : Control {
 			case "Custom":
 				var validated = filterName.ValidateNodeName();
 				if (State.SelectedFilters.Exists(filter => filter.ValidateNodeName() == validated)) {
-					App.ShowError($"There is already a custom filter with content {filterName}.");
+					ErrorDialog.Show($"There is already a custom filter with content {filterName}.");
 					return;
 				}
-				_enterCustomFilter.PopupCentered();
-				_enterCustomFilter.GetNode<LineEdit>("%CustomFilter").GrabFocus();
+				PromptDialog.Show("Enter the custom filter", AddCustomFilter);
 				return;
 			case "NoTasksWithChildren" when !HasFilter("NoHierarchy"):
-				App.ShowError("This filter can only be added with no hierarchy filter.");
+				ErrorDialog.Show("This filter can only be added with no hierarchy filter.");
 				return;
 			case "NoRootTaskParent" when State.RootId == 0 || App.Tasks[State.RootId].Parent == 0:
-				App.ShowError("This filter can only be added with a root task which has a parent.");
+				ErrorDialog.Show("This filter can only be added with a root task which has a parent.");
 				return;
 			case "NoHierarchy":
 				State.Expanded = false;
@@ -287,12 +291,9 @@ public partial class Organizer : Control {
 		RegenerateFilterList();
 	}
 
-	private static void AddCustomFilter() {
-		var lineEdit = _enterCustomFilter.GetNode<LineEdit>("%CustomFilter");
-		var customFilter = "@" + lineEdit.Text;
-		lineEdit.Text = "";
-		State.SelectedFilters.Add(customFilter);
-		AddFilterButton(customFilter);
+	private static void AddCustomFilter(string customFilter) {
+		State.SelectedFilters.Add("@" + customFilter);
+		AddFilterButton("@" + customFilter);
 		App.View.Render();
 	}
 
@@ -319,15 +320,12 @@ public partial class Organizer : Control {
 		}
 	}
 
-	private static void AddState() {
-		var lineEdit = _enterStateName.GetNode<LineEdit>("%StateName");
-		var stateName = lineEdit.Text;
-		lineEdit.Text = "";
+	private static void AddState(string stateName) {
 		if (States.ContainsKey(stateName)) {
-			App.ShowError($"There is already a state with name {stateName}.");
+			ErrorDialog.Show($"There is already a state with name {stateName}.");
 			return;
 		} else if (stateName.ValidateNodeName() != stateName) {
-			App.ShowError($"The name {stateName} contains characters that are not allowed (. : @ / \" %).");
+			ErrorDialog.Show($"The name {stateName} contains characters that are not allowed (. : @ / \" %).");
 			return;
 		}
 
@@ -346,22 +344,13 @@ public partial class Organizer : Control {
 	}
 
 	private static void AskStateName() {
-		_enterStateName.PopupCentered();
-		_enterStateName.GetNode<LineEdit>("%StateName").GrabFocus();
+		PromptDialog.Show("Enter the state name", AddState);
 	}
-
-	private static void StateNameSubmitted(string _) {
-		_enterStateName.GetOkButton().EmitSignal("pressed");
-	}
-
-	private static void CustomFilterSubmitted(string _) {
-		_enterCustomFilter.GetOkButton().EmitSignal("pressed");
-	}
-
-	private static void RemoveState() {
-		_states.GetNode(_stateToRemove).QueueFree();
-		States[_stateToRemove].Delete();
-		States.Remove(_stateToRemove);
+	
+	private static void RemoveState(string stateToRemove) {
+		_states.GetNode(stateToRemove).QueueFree();
+		States[stateToRemove].Delete();
+		States.Remove(stateToRemove);
 	}
 
 	private static void ApplyState(State newState, bool first = false) {
@@ -394,9 +383,7 @@ public partial class Organizer : Control {
 	private static void ChangeState(string stateName) {
 		var newState = States[stateName];
 		if (stateName != State.Default.Name && State.Equals(newState)) {
-			_stateToRemove = stateName;
-			_confirmStateDelete.DialogText = $"Delete state {stateName}?";
-			_confirmStateDelete.PopupCentered();
+			ConfirmDialog.Show($"Delete state {stateName}?", () => RemoveState(stateName));
 			return;
 		}
 		

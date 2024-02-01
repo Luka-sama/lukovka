@@ -6,46 +6,69 @@ using System.Reflection;
 using Godot;
 
 public partial class TaskDetails : Control {
-	private Task _task;
-	private Control _panel;
-	private GridContainer _form;
+	private static Task _task;
+	private static TaskDetails _root;
+	private static Control _showing;
+	private static Control _editing;
+	private static Control _panel;
+	private static GridContainer _form;
+	private static Button _completeButton;
+	private static Label _idLabel;
+	private static RichTextLabel _infoLabel;
+	private static ProgressBar _progressBar;
+	private static ImprovedRichTextLabel _textLabel;
+	private static ImprovedRichTextLabel _descriptionLabel;
+	private static ScrollContainer _scrollContainer;
 
 	public override void _Ready() {
+		_root = this;
+		_showing = GetNode<Control>("%TaskDetailsShowing");
+		_editing = GetNode<Control>("%TaskDetailsEditing");
 		_panel = GetNode<Control>("%TaskDetailsContainer");
 		_form = GetNode<GridContainer>("%Form");
+		_completeButton = GetNode<Button>("%Complete");
+		_idLabel = GetNode<Label>("%Id");
+		_infoLabel = GetNode<RichTextLabel>("%Info");
+		_progressBar = GetNode<ProgressBar>("%ProgressBar");
+		_textLabel = GetNode<ImprovedRichTextLabel>("%Text");
+		_descriptionLabel = GetNode<ImprovedRichTextLabel>("%Description");
+		_scrollContainer = GetNode<ScrollContainer>("%DescriptionScrollContainer");
+		
 		if (App.IsMobile()) {
 			_form.Columns = 1;
 		}
 		foreach (var child in _form.GetChildren()) {
 			if (child is LineEdit lineEdit) {
-				lineEdit.TextSubmitted += SubmittedTask;
+				lineEdit.TextSubmitted += _ => SaveTask();
 			}
 		}
 	}
 	
 	public override void _UnhandledInput(InputEvent @event) {
-		if (!App.IsMobile() && @event is InputEventMouseButton click && click.IsPressed() &&
-			!_panel.GetGlobalRect().HasPoint(click.GlobalPosition)) {
-			if (GetNode<Control>("%TaskDetailsEditing").Visible && SaveOrTestTask(true)) {
-				var confirmClose = GetNode<ConfirmationDialog>("%ConfirmClose");
-				confirmClose.PopupCentered();
+		var isEditing = GetNode<Control>("%TaskDetailsEditing").Visible;
+		if ((!isEditing || !App.IsMobile()) &&
+			@event is InputEventMouseButton click && click.IsPressed() &&
+			!_panel.GetGlobalRect().HasPoint(click.GlobalPosition)
+		) {
+			if (isEditing && SaveOrTestTask(true)) {
+				ConfirmDialog.Show("Close without saving?", HideTask);
 			} else {
 				HideTask();
 			}
 		}
 	}
 
-	public async void ShowTask(Task task) {
-		if (Visible) {
+	public static async void ShowTask(Task task) {
+		if (_root.Visible) {
 			HideTask();
 		}
-		Visible = true;
-		GetTree().Paused = true;
+		_root.Visible = true;
+		_root.GetTree().Paused = true;
 		_task = task;
 		if (task.IsFolder) {
-			GetNode<Button>("%Complete").Hide();
+			_completeButton.Hide();
 		}
-		GetNode<Label>("%Id").Text = $"ID: {task.Id}";
+		_idLabel.Text = $"ID: {task.Id}";
 
 		var info = $"[b]Created:[/b] {task.Created.ToLocalTime()}.";
 		if (task.Updated != DateTime.MinValue && (task.Updated - task.Created).TotalSeconds >= 1) {
@@ -54,12 +77,10 @@ public partial class TaskDetails : Control {
 		if (task.Completed != DateTime.MinValue) {
 			info += $" [b]Completed:[/b] {task.Completed.ToLocalTime()}.";
 		}
-		var infoLabel = GetNode<RichTextLabel>("%Info");
-		infoLabel.Clear();
-		infoLabel.AppendText(info);
+		_infoLabel.Clear();
+		_infoLabel.AppendText(info);
 		
-		var progress = (double)task.CountPointsDone() / task.CountPoints() * 100;
-		GetNode<ProgressBar>("%ProgressBar").Value = progress;
+		_progressBar.Value = Mathf.Floor(100f * task.CountPointsDone() / task.CountPoints());
 
 		var text = task.Text;
 		if (task.IsFolder) {
@@ -68,30 +89,28 @@ public partial class TaskDetails : Control {
 		if (task.Completed != DateTime.MinValue) {
 			text = "[s][i]" + text + "[/i][/s]";
 		}
-		GetNode<ImprovedRichTextLabel>("%Text").SetText(text);
+		_textLabel.SetText(text);
 		
-		var descriptionLabel = GetNode<ImprovedRichTextLabel>("%Description");
-		descriptionLabel.SetText(task.Description);
-		await ToSignal(GetTree(), SceneTree.SignalName.ProcessFrame);
-		var scrollContainer = GetNode<ScrollContainer>("%DescriptionScrollContainer");
-		scrollContainer.CustomMinimumSize = new Vector2(
-			scrollContainer.CustomMinimumSize.X,
-			Mathf.Min(500, descriptionLabel.GetContentHeight())
+		_descriptionLabel.SetText(task.Description);
+		await _root.ToSignal(_root.GetTree(), SceneTree.SignalName.ProcessFrame);
+		_scrollContainer.CustomMinimumSize = new Vector2(
+			_scrollContainer.CustomMinimumSize.X,
+			Mathf.Min(500, _descriptionLabel.GetContentHeight())
 		);
 	}
 
-	private void HideTask() {
-		if (!Visible) {
+	private static void HideTask() {
+		if (!_root.Visible) {
 			return;
 		}
-		GetNode<Control>("%TaskDetailsEditing").Hide();
-		GetNode<Control>("%TaskDetailsShowing").Show();
-		Hide();
-		GetTree().Paused = false;
+		_editing.Hide();
+		_showing.Show();
+		_root.Hide();
+		_root.GetTree().Paused = false;
 		_task = null;
 	}
 	
-	private void SetAsRoot() {
+	private static void SetAsRoot() {
 		Organizer.State.RootId = (Organizer.State.RootId == _task.Id ? 0 : _task.Id);
 		if (Organizer.State.RootId == 0 || App.Tasks[Organizer.State.RootId].Parent == 0) {
 			Organizer.RemoveFilter("NoRootTaskParent");
@@ -100,14 +119,14 @@ public partial class TaskDetails : Control {
 		HideTask();
 	}
 	
-	private void CompleteTask() {
+	private static void CompleteTask() {
 		_task.Complete();
 		ShowTask(_task);
 	}
 
-	private void EditTask() {
-		GetNode<Control>("%TaskDetailsShowing").Hide();
-		GetNode<Control>("%TaskDetailsEditing").Show();
+	private static void EditTask() {
+		_showing.Hide();
+		_editing.Show();
 		if (!App.IsMobile()) {
 			_form.GetNode<LineEdit>("Text").GrabFocus();
 		}
@@ -137,23 +156,24 @@ public partial class TaskDetails : Control {
 		}
 	}
 
-	private void ConfirmDelete() {
+	private static void ConfirmDelete() {
 		var childrenCount = _task.CountChildren();
-		var confirmDelete = GetNode<ConfirmationDialog>("%ConfirmDelete");
-		confirmDelete.PopupCentered();
-		confirmDelete.DialogText = "Delete task" + (childrenCount > 0 ? " with " + childrenCount + " children" : "") + "?";
+		ConfirmDialog.Show(
+			"Delete task" + (childrenCount > 0 ? " with " + childrenCount + " children" : "") + "?",
+			DeleteTask
+		);
 	}
 
-	private void DeleteTask() {
+	private static void DeleteTask() {
 		_task.Delete();
 		HideTask();
 	}
 
-	private void SaveTask() {
+	private static void SaveTask() {
 		SaveOrTestTask();
 	}
 
-	private bool SaveOrTestTask(bool onlyTest = false) {
+	private static bool SaveOrTestTask(bool onlyTest = false) {
 		var hasChanged = false;
 		var oldParent = _task.Parent;
 		foreach (var child in _form.GetChildren()) {
@@ -213,7 +233,7 @@ public partial class TaskDetails : Control {
 		return hasChanged;
 	}
 
-	private bool SetValue(FieldInfo property, object value, bool onlyTest) {
+	private static bool SetValue(FieldInfo property, object value, bool onlyTest) {
 		var oldValue = property.GetValue(_task);
 		if (value is List<string> newList && oldValue is List<string> oldList && oldList.SequenceEqual(newList) ||
 		    value == null && oldValue == null ||
@@ -224,9 +244,5 @@ public partial class TaskDetails : Control {
 			property.SetValue(_task, value);
 		}
 		return true;
-	}
-
-	private void SubmittedTask(string _) {
-		SaveTask();
 	}
 }
