@@ -209,7 +209,7 @@ public partial class Organizer : Control {
 	
 	private static string TransformName(string input) {
 		if (input.StartsWith("@")) {
-			return input[1..];
+			return input;
 		}
 		
 		var result = new StringBuilder();
