@@ -152,7 +152,7 @@ public partial class Organizer : Control {
 				Expanded = true,
 				Id = nextId,
 				Text = group,
-				IsFolder = true,
+				Folder = true,
 			};
 			groupTasks.Add(groupTask);
 			task.Group = groupTask.Id;

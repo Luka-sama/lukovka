@@ -19,7 +19,7 @@ public class Task {
 	[DefaultValue("")] public string Description = "";
 	public int Points;
 	public int PointsDone;
-	public bool IsFolder;
+	public bool Folder;
 	public int RepeatingEvery;
 	public int RepeatingInterval; // 0 - no repeating, 1 - repeating without date, 2 - day, 3 - week, 4 - month, 5 - year
 	public bool RepeatingFromCompleted;

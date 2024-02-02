@@ -275,11 +275,11 @@ layout_mode = 2
 size_flags_horizontal = 0
 script = ExtResource("4_57bjy")
 
-[node name="IsFolderLabel" type="Label" parent="TaskDetailsContainer/PanelContainer/TaskDetailsEditing/Form"]
+[node name="FolderLabel" type="Label" parent="TaskDetailsContainer/PanelContainer/TaskDetailsEditing/Form"]
 layout_mode = 2
-text = "Is folder: "
+text = "Folder: "
 
-[node name="IsFolder" type="CheckBox" parent="TaskDetailsContainer/PanelContainer/TaskDetailsEditing/Form"]
+[node name="Folder" type="CheckBox" parent="TaskDetailsContainer/PanelContainer/TaskDetailsEditing/Form"]
 layout_mode = 2
 size_flags_horizontal = 0
 

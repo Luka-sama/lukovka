@@ -68,7 +68,7 @@ public partial class List : TaskView {
 			} else {
 				_rootId = 0;
 			}
-		} else if (Organizer.Tasks.Find(task => task.Id == _rootId).IsFolder) {
+		} else if (Organizer.Tasks.Find(task => task.Id == _rootId).Folder) {
 			GetNode<Control>("%Spacer").CustomMinimumSize /= 2;
 		}
 		

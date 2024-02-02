@@ -65,7 +65,7 @@ public partial class TaskDetails : Control {
 		_root.Visible = true;
 		_root.GetTree().Paused = true;
 		_task = task;
-		if (task.IsFolder) {
+		if (task.Folder) {
 			_completeButton.Hide();
 		}
 		_idLabel.Text = $"ID: {task.Id}";
@@ -79,18 +79,18 @@ public partial class TaskDetails : Control {
 		}
 		_infoLabel.Clear();
 		_infoLabel.AppendText(info);
-		
+
 		_progressBar.Value = Mathf.Floor(100f * task.CountPointsDone() / task.CountPoints());
 
 		var text = task.Text;
-		if (task.IsFolder) {
+		if (task.Folder) {
 			text = "[b]" + text + "[/b]";
 		}
 		if (task.Completed != DateTime.MinValue) {
 			text = "[s][i]" + text + "[/i][/s]";
 		}
 		_textLabel.SetText(text);
-		
+
 		_descriptionLabel.SetText(task.Description);
 		await _root.ToSignal(_root.GetTree(), SceneTree.SignalName.ProcessFrame);
 		_scrollContainer.CustomMinimumSize = new Vector2(

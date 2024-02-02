@@ -7,7 +7,7 @@ public partial class ListTask : Control {
 	public void SetTask(Task task) {
 		_task = task;
 		
-		if (task.IsFolder || Organizer.HasFilter("NoCompleteButton")) {
+		if (task.Folder || Organizer.HasFilter("NoCompleteButton")) {
 			GetNode<Control>("%Complete").Hide();
 			GetNode<Control>("%Spacer").Hide();
 		} else {
@@ -50,7 +50,7 @@ public partial class ListTask : Control {
 			}
 		}
 		
-		if (_task.IsFolder) {
+		if (_task.Folder) {
 			text = $"[b]{text}[/b]";
 		}
 		
