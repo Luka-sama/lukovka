@@ -59,7 +59,7 @@ public partial class Sort : GodotObject {
 		}
 
 		if (dateA != dateB) {
-			return (dateA < dateB ? 1 : -1);
+			return (dateA > dateB ? 1 : -1);
 		}
 
 		return Standard();
