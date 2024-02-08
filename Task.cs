@@ -73,24 +73,16 @@ public class Task {
 		}
 		var newTask = Clone();
 		newTask.Completed = DateTime.MinValue;
-		var startDate = (RepeatingFromCompleted && StartDate != DateTime.MinValue ? DateTime.Now.Date : StartDate);
-		var date = (RepeatingFromCompleted && Date != DateTime.MinValue ? DateTime.Now.Date : Date);
-		if (RepeatingInterval == 1) {
-			newTask.StartDate = DateTime.MinValue;
-			newTask.Date = DateTime.MinValue;
-		} else if (RepeatingInterval == 2) {
-			newTask.StartDate = (startDate != DateTime.MinValue ? startDate.AddDays(RepeatingEvery) : startDate);
-			newTask.Date = (date != DateTime.MinValue ? date.AddDays(RepeatingEvery) : date);
-		} else if (RepeatingInterval == 3) {
-			newTask.StartDate = (startDate != DateTime.MinValue ? startDate.AddDays(RepeatingEvery * 7) : startDate);
-			newTask.Date = (date != DateTime.MinValue ? date.AddDays(RepeatingEvery * 7) : date);
-		} else if (RepeatingInterval == 4) {
-			newTask.StartDate = (startDate != DateTime.MinValue ? startDate.AddMonths(RepeatingEvery) : startDate);
-			newTask.Date = (date != DateTime.MinValue ? date.AddMonths(RepeatingEvery) : date);
-		} else if (RepeatingInterval == 5) {
-			newTask.StartDate = (startDate != DateTime.MinValue ? startDate.AddYears(RepeatingEvery) : startDate);
-			newTask.Date = (date != DateTime.MinValue ? date.AddYears(RepeatingEvery) : date);
+		newTask.StartDate = DateTime.MinValue;
+		newTask.Date = DateTime.MinValue;
+
+		if (StartDate != DateTime.MinValue && RepeatingInterval != 1) {
+			newTask.StartDate = RepeatDate(RepeatingFromCompleted ? DateTime.Now.Date : StartDate);
 		}
+		if (Date != DateTime.MinValue && RepeatingInterval != 1) {
+			newTask.Date = RepeatDate(RepeatingFromCompleted ? DateTime.Now.Date : Date);
+		}
+
 		newTask.Create();
 	}
 
@@ -149,5 +141,16 @@ public class Task {
 	private static DateTime CurrentTime() {
 		var date = DateTime.Now.ToUniversalTime();
 		return new DateTime(date.Year, date.Month, date.Day, date.Hour, date.Minute, date.Second, date.Kind);
+	}
+
+	private DateTime RepeatDate(DateTime dateTime) {
+		dateTime = dateTime.ToLocalTime();
+		return (RepeatingInterval switch {
+			2 => dateTime.AddDays(RepeatingEvery),
+			3 => dateTime.AddDays(RepeatingEvery * 7),
+			4 => dateTime.AddMonths(RepeatingEvery),
+			5 => dateTime.AddYears(RepeatingEvery),
+			_ => throw new ArgumentOutOfRangeException(),
+		}).ToUniversalTime();
 	}
 }
