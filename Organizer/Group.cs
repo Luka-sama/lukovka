@@ -15,6 +15,14 @@ public partial class Group : GodotObject {
 	public string ByPriority() {
 		return Task.Priority.ToString();
 	}
+
+	public string ByRootTask() {
+		var parent = Task;
+		while (App.Tasks.ContainsKey(parent.Parent)) {
+			parent = App.Tasks[parent.Parent];
+		}
+		return parent.Text;
+	}
 	
 	public string Custom(string expressionString) {
 		return Customizer.CalcExpression(Task, expressionString, this, "");
