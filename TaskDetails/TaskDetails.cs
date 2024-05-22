@@ -69,6 +69,10 @@ public partial class TaskDetails : Control {
 			_completeButton.Hide();
 		}
 		_idLabel.Text = $"ID: {task.Id}";
+		
+		var done = task.CountPointsDone();
+		var total = task.CountPoints();
+		_progressBar.Value = Mathf.Floor(100f * done / total);
 
 		var info = $"[b]Created:[/b] {task.Created.ToLocalTime()}.";
 		if (task.Updated != DateTime.MinValue && (task.Updated - task.Created).TotalSeconds >= 1) {
@@ -77,10 +81,11 @@ public partial class TaskDetails : Control {
 		if (task.Completed != DateTime.MinValue) {
 			info += $" [b]Completed:[/b] {task.Completed.ToLocalTime()}.";
 		}
+		if (done > 0 || total > 0) {
+			info += $" [b]Done:[/b] {done}/{total}.";
+		}
 		_infoLabel.Clear();
 		_infoLabel.AppendText(info);
-
-		_progressBar.Value = Mathf.Floor(100f * task.CountPointsDone() / task.CountPoints());
 
 		var text = task.Text;
 		if (task.Folder) {
