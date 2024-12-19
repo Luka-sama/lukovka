@@ -71,7 +71,7 @@ public partial class Organizer : Control {
 		UpdateStateButtons();
 		State.Name = "";
 	}
-
+	
 	public static bool HasFilter(string filterName) {
 		return State.SelectedFilters.Contains(filterName);
 	}
@@ -98,7 +98,7 @@ public partial class Organizer : Control {
 		AddStateButton(state.Name);
 		UpdateStateButtons();
 	}
-
+	
 	private static void FilterTasks() {
 		Tasks = Tasks
 			.Where(HasFilter("NoRootTaskParent") ? IsChildOfRoot : WithHierarchy(IsChildOfRoot))

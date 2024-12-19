@@ -13,11 +13,7 @@ function stop($error) {
 function shutdown() {
 	global $lockFile, $lockPath;
 	if (!empty($lockFile)) {
-		flock($lockFile, LOCK_UN);
 		fclose($lockFile);
-	}
-	if (!empty($lockPath)) {
-		unlink($lockPath);
 	}
 }
 register_shutdown_function('shutdown');
@@ -27,10 +23,7 @@ $path = (isset($_GET['states']) ? STATES_PATH : TASKS_PATH);
 $lockPath = "$path.lock";
 $lockFile = fopen($lockPath, 'c+');
 ($lockFile) or stop("couldn't create .lock-file");
-if (!flock($lockFile, LOCK_EX)) {
-	fclose($lockFile);
-	stop("couldn't lock .lock-file");
-}
+(flock($lockFile, LOCK_EX)) or stop("couldn't lock .lock-file");
 
 $content = file_get_contents($path);
 $method = $_SERVER['REQUEST_METHOD'];

@@ -20,7 +20,7 @@ public partial class App : Control {
 		if (IsMobile()) {
 			GetTree().Root.ContentScaleFactor = 2.25f;
 		}
-		
+
 		Request(HttpClient.Method.Get, "");
 		Request(HttpClient.Method.Get, "", true);
 	}
@@ -33,7 +33,7 @@ public partial class App : Control {
 			GetTree().Quit();
 		}
 	}
-	
+
 	public static bool IsMobile() {
 		return OS.GetName() == "Android";
 	}
@@ -45,7 +45,7 @@ public partial class App : Control {
 	public static void Request(HttpClient.Method method, string requestData, bool states = false) {
 		var httpRequest = new HttpRequest();
 		_root.AddChild(httpRequest);
-		httpRequest.RequestCompleted += (result, responseCode, headers, body) => 
+		httpRequest.RequestCompleted += (result, responseCode, headers, body) =>
 			HttpRequestCompleted(result, responseCode, headers, body, httpRequest, states);
 		var url = ServerUrl + (states ? "&states" : "");
 		if (httpRequest.Request(url, null, method, requestData) != Error.Ok) {
@@ -82,7 +82,7 @@ public partial class App : Control {
 					Task.NextId = Mathf.Max(task.Id + 1, Task.NextId);
 				}
 			} catch {
-				ErrorDialog.Show($"JSON parsing failed: {json}", true);
+				ErrorDialog.Show($"JSON parsing failed: {json} / Data: {data}", true);
 			}
 		}
 		if (!states) {

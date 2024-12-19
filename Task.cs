@@ -48,14 +48,14 @@ public class Task {
 	public int CountChildren() {
 		return Children.Sum(child => 1 + child.CountChildren());
 	}
-	
+
 	public int CountPoints() {
 		if (Children.Count < 1) {
 			return (Points == 0 ? 1 : Points);
 		}
 		return Points + Children.Sum(child => child.CountPoints());
 	}
-	
+
 	public int CountPointsDone() {
 		var pointsDone = (Completed == DateTime.MinValue && PointsDone < Points ? PointsDone : Points);
 		if (Children.Count < 1) {
@@ -99,17 +99,20 @@ public class Task {
 		foreach (var taskId in tasksToDelete) {
 			App.Tasks.Remove(taskId);
 		}
+		if (Parent > 0) {
+			App.Tasks[Parent].Children.Remove(this);
+		}
 		App.View.Render();
 		var idsAsString = string.Join("\n", tasksToDelete);
 		App.Request(HttpClient.Method.Delete, idsAsString);
 	}
-	
+
 	private void Create() {
 		App.Tasks[Id] = this;
 		App.View.Render();
 		App.Request(HttpClient.Method.Put, Serialize());
 	}
-	
+
 	private static Task Deserialize(string json) {
 		return JsonConvert.DeserializeObject<Task>(json);
 	}
@@ -119,7 +122,7 @@ public class Task {
 			DefaultValueHandling = DefaultValueHandling.Ignore,
 		});
 	}
-	
+
 	private Task Clone() {
 		var task = Deserialize(Serialize());
 		task.Id = NextId;
@@ -129,7 +132,7 @@ public class Task {
 		}
 		return task;
 	}
-	
+
 	private static List<int> GetChildrenIds(Task parent) {
 		var result = parent.Children.Select(task => task.Id).ToList();
 		foreach (var child in parent.Children) {

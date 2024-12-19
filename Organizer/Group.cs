@@ -3,7 +3,7 @@ using Godot;
 
 public partial class Group : GodotObject {
 	public Task Task;
-	
+
 	public string ByDate() {
 		return DateToString(Task.Date);
 	}
@@ -23,7 +23,7 @@ public partial class Group : GodotObject {
 		}
 		return parent.Text;
 	}
-	
+
 	public string Custom(string expressionString) {
 		return Customizer.CalcExpression(Task, expressionString, this, "");
 	}

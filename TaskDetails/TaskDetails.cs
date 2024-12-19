@@ -33,7 +33,7 @@ public partial class TaskDetails : Control {
 		_textLabel = GetNode<ImprovedRichTextLabel>("%Text");
 		_descriptionLabel = GetNode<ImprovedRichTextLabel>("%Description");
 		_scrollContainer = GetNode<ScrollContainer>("%DescriptionScrollContainer");
-		
+
 		if (App.IsMobile()) {
 			_form.Columns = 1;
 		}
@@ -43,7 +43,7 @@ public partial class TaskDetails : Control {
 			}
 		}
 	}
-	
+
 	public override void _UnhandledInput(InputEvent @event) {
 		var isEditing = GetNode<Control>("%TaskDetailsEditing").Visible;
 		if ((!isEditing || !App.IsMobile()) &&
@@ -69,7 +69,7 @@ public partial class TaskDetails : Control {
 			_completeButton.Hide();
 		}
 		_idLabel.Text = $"ID: {task.Id}";
-		
+
 		var done = task.CountPointsDone();
 		var total = task.CountPoints();
 		_progressBar.Value = Mathf.Floor(100f * done / total);
@@ -104,18 +104,7 @@ public partial class TaskDetails : Control {
 		);
 	}
 
-	private static void HideTask() {
-		if (!_root.Visible) {
-			return;
-		}
-		_editing.Hide();
-		_showing.Show();
-		_root.Hide();
-		_root.GetTree().Paused = false;
-		_task = null;
-	}
-	
-	private static void SetAsRoot() {
+	public static void SetAsRoot() {
 		Organizer.State.RootId = (Organizer.State.RootId == _task.Id ? 0 : _task.Id);
 		if (Organizer.State.RootId == 0 || App.Tasks[Organizer.State.RootId].Parent == 0) {
 			Organizer.RemoveFilter("NoRootTaskParent");
@@ -123,13 +112,8 @@ public partial class TaskDetails : Control {
 		App.View.Render();
 		HideTask();
 	}
-	
-	private static void CompleteTask() {
-		_task.Complete();
-		ShowTask(_task);
-	}
 
-	private static void EditTask() {
+	public static void EditTask() {
 		_showing.Hide();
 		_editing.Show();
 		if (!App.IsMobile()) {
@@ -139,7 +123,7 @@ public partial class TaskDetails : Control {
 		var children = _form.GetChildren();
 		foreach (var child in children.Where((_, index) => index % 2 == 1 && index < children.Count - 2)) {
 			var value = _task.GetType().GetField(child.Name)!.GetValue(_task);
-			
+
 			switch (child) {
 				case LineEdit lineEdit:
 					lineEdit.Text = value switch {
@@ -161,12 +145,28 @@ public partial class TaskDetails : Control {
 		}
 	}
 
-	private static void ConfirmDelete() {
+	public static void ConfirmDelete() {
 		var childrenCount = _task.CountChildren();
 		ConfirmDialog.Show(
 			"Delete task" + (childrenCount > 0 ? " with " + childrenCount + " children" : "") + "?",
 			DeleteTask
 		);
+	}
+
+	private static void HideTask() {
+		if (!_root.Visible) {
+			return;
+		}
+		_editing.Hide();
+		_showing.Show();
+		_root.Hide();
+		_root.GetTree().Paused = false;
+		_task = null;
+	}
+
+	private static void CompleteTask() {
+		_task.Complete();
+		ShowTask(_task);
 	}
 
 	private static void DeleteTask() {
@@ -186,7 +186,7 @@ public partial class TaskDetails : Control {
 				continue;
 			}
 			var property = _task.GetType().GetField(child.Name)!;
-			
+
 			switch (child) {
 				case LineEdit lineEdit:
 					var text = lineEdit.Text;
