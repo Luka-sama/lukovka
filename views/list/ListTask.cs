@@ -35,8 +35,6 @@ public partial class ListTask : Control {
 		} else {
 			expandButton.Text = "→";
 		}
-
-		expandButton.Pressed += () => ExpandTask();
 	}
 
 	private string GetText() {
@@ -137,7 +135,7 @@ public partial class ListTask : Control {
 			if (click.DoubleClick && App.IsMobile()) {
 				TaskDetails.ShowTask(_task);
 			} else {
-				ExpandTask(false);
+				ExpandTask();
 			}
 		} else if (!App.IsMobile() && click.ButtonIndex is MouseButton.Middle or MouseButton.Right ||
 		           App.IsMobile() && click.DoubleClick) {
@@ -168,11 +166,16 @@ public partial class ListTask : Control {
 		}
 	}
 
-	private void ExpandTask(bool showError = true) {
+	private void ExpandTaskExplicitly() {
 		if (Organizer.HasFilter("NoHierarchy")) {
-			if (showError) {
-				ErrorDialog.Show("You can't expand a task with no hierarchy.");
-			}
+			ErrorDialog.Show("You can't expand a task with no hierarchy.");
+		} else {
+			ExpandTask();
+		}
+	}
+
+	private void ExpandTask() {
+		if (Organizer.HasFilter("NoHierarchy")) {
 			return;
 		}
 

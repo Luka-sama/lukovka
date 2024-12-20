@@ -77,4 +77,5 @@ item_3/id = 3
 
 [connection signal="pressed" from="Complete" to="." method="CompleteTask"]
 [connection signal="gui_input" from="Text" to="." method="OpenTask"]
+[connection signal="pressed" from="Expand" to="." method="ExpandTaskExplicitly"]
 [connection signal="id_pressed" from="TaskContextMenu" to="." method="OnContextMenuAction"]
