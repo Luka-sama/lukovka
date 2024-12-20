@@ -8,7 +8,7 @@ public partial class App : Control {
 	public static readonly Dictionary<int, Task> Tasks = new();
 	public static TaskView View { get; private set; }
 	public static Rect2 Rect => _scrollContainer.GetGlobalRect();
-	private const string ServerUrl = "https://enveltia.net/lukovka.php?key=t8B_JR_c_u3y0t6HSabj";
+	private const string ServerUrl = "https://enveltia.net/lukovka.php?key=YGDOMvwzrPy87u2dfN0r";
 	private const string BackupDir = "user://backups";
 	private static Control _root;
 	private static ScrollContainer _scrollContainer;
@@ -71,19 +71,21 @@ public partial class App : Control {
 			return;
 		}
 		Backup(data, states);
-		foreach (var json in data.Split("\n")) {
-			try {
-				if (states) {
-					var state = JsonConvert.DeserializeObject<State>(json);
+		try {
+			if (states) {
+				var allStates = JsonConvert.DeserializeObject<State[]>(data);
+				foreach (var state in allStates) {
 					Organizer.AddOrRestoreState(state);
-				} else {
-					var task = JsonConvert.DeserializeObject<Task>(json);
+				}
+			} else {
+				var allTasks = JsonConvert.DeserializeObject<Task[]>(data);
+				foreach (var task in allTasks) {
 					Tasks[task.Id] = task;
 					Task.NextId = Mathf.Max(task.Id + 1, Task.NextId);
 				}
-			} catch {
-				ErrorDialog.Show($"JSON parsing failed: {json} / Data: {data}", true);
 			}
+		} catch {
+			ErrorDialog.Show($"JSON parsing failed: {data}", true);
 		}
 		if (!states) {
 			foreach (var task in Tasks.Values.Where(task => Tasks.ContainsKey(task.Parent))) {
