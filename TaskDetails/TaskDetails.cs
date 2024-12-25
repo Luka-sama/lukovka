@@ -13,12 +13,14 @@ public partial class TaskDetails : Control {
 	private static Control _panel;
 	private static GridContainer _form;
 	private static Button _completeButton;
+	private static Button _recordButton;
 	private static Label _idLabel;
 	private static RichTextLabel _infoLabel;
 	private static ProgressBar _progressBar;
 	private static ImprovedRichTextLabel _textLabel;
 	private static ImprovedRichTextLabel _descriptionLabel;
 	private static ScrollContainer _scrollContainer;
+	private static double _timeElapsed;
 
 	public override void _Ready() {
 		_root = this;
@@ -27,6 +29,7 @@ public partial class TaskDetails : Control {
 		_panel = GetNode<Control>("%TaskDetailsContainer");
 		_form = GetNode<GridContainer>("%Form");
 		_completeButton = GetNode<Button>("%Complete");
+		_recordButton = GetNode<Button>("%Record");
 		_idLabel = GetNode<Label>("%Id");
 		_infoLabel = GetNode<RichTextLabel>("%Info");
 		_progressBar = GetNode<ProgressBar>("%ProgressBar");
@@ -41,6 +44,16 @@ public partial class TaskDetails : Control {
 			if (child is LineEdit lineEdit) {
 				lineEdit.TextSubmitted += _ => SaveTask();
 			}
+		}
+	}
+
+	public override void _Process(double delta) {
+		if (_root.Visible && _task.IsRecording()) {
+			_timeElapsed += delta;
+		}
+		if (_timeElapsed >= 1) {
+			_timeElapsed = 0;
+			ShowTask(_task);
 		}
 	}
 
@@ -72,6 +85,7 @@ public partial class TaskDetails : Control {
 
 		var done = task.CountPointsDone();
 		var total = task.CountPoints();
+		var recorded = task.CountRecorded();
 		_progressBar.Value = Mathf.Floor(100f * done / total);
 
 		var info = $"[b]Created:[/b] {task.Created.ToLocalTime()}.";
@@ -84,6 +98,9 @@ public partial class TaskDetails : Control {
 		if (done > 0 || total > 0) {
 			info += $" [b]Done:[/b] {done}/{total}.";
 		}
+		if (recorded.TotalSeconds > 0) {
+			info += $" [b]Recorded:[/b] {(int)recorded.TotalHours:00}:{recorded.Minutes:00}:{recorded.Seconds:00}.";
+		}
 		_infoLabel.Clear();
 		_infoLabel.AppendText(info);
 
@@ -95,6 +112,8 @@ public partial class TaskDetails : Control {
 			text = "[s][i]" + text + "[/i][/s]";
 		}
 		_textLabel.SetText(text);
+
+		_recordButton.Text = _task.IsRecording() ? "\u275a\u275a" : "\u25b6";
 
 		_descriptionLabel.SetText(task.Description);
 		await _root.ToSignal(_root.GetTree(), SceneTree.SignalName.ProcessFrame);
@@ -151,6 +170,11 @@ public partial class TaskDetails : Control {
 			"Delete task" + (childrenCount > 0 ? " with " + childrenCount + " children" : "") + "?",
 			DeleteTask
 		);
+	}
+
+	public static void ToggleRecording() {
+		_task.ToggleRecording();
+		_timeElapsed += 1; // update recording button
 	}
 
 	private static void HideTask() {

@@ -22,7 +22,7 @@ public class State {
 		state.Name = newName;
 		return state;
 	}
-	
+
 	public bool Equals(State state) {
 		string savedNameA = Name, savedNameB = state.Name;
 		List<string> filtersA = SelectedFilters.ToList(), filtersB = state.SelectedFilters.ToList();
@@ -40,13 +40,13 @@ public class State {
 
 	public void Create() {
 		var json = Serialize();
-		App.Request(HttpClient.Method.Put, json, true);
+		App.Request(HttpClient.Method.Put, json, Endpoint.States);
 	}
 
 	public void Delete() {
-		App.Request(HttpClient.Method.Delete, Name, true);
+		App.Request(HttpClient.Method.Delete, Name, Endpoint.States);
 	}
-	
+
 	private static State Deserialize(string json) {
 		return JsonConvert.DeserializeObject<State>(json);
 	}

@@ -89,6 +89,12 @@ layout_mode = 2
 size_flags_vertical = 0
 text = "×"
 
+[node name="Record" type="Button" parent="TaskDetailsContainer/PanelContainer/TaskDetailsShowing/HBoxContainer"]
+unique_name_in_owner = true
+custom_minimum_size = Vector2(40, 40)
+layout_mode = 2
+text = "▶"
+
 [node name="Spacer" type="Control" parent="TaskDetailsContainer/PanelContainer/TaskDetailsShowing/HBoxContainer"]
 custom_minimum_size = Vector2(5, 0)
 layout_mode = 2
@@ -302,4 +308,5 @@ text = "Save task"
 [connection signal="pressed" from="TaskDetailsContainer/PanelContainer/TaskDetailsShowing/HBoxContainer/Complete" to="." method="CompleteTask"]
 [connection signal="pressed" from="TaskDetailsContainer/PanelContainer/TaskDetailsShowing/HBoxContainer/Edit" to="." method="EditTask"]
 [connection signal="pressed" from="TaskDetailsContainer/PanelContainer/TaskDetailsShowing/HBoxContainer/Delete" to="." method="ConfirmDelete"]
+[connection signal="pressed" from="TaskDetailsContainer/PanelContainer/TaskDetailsShowing/HBoxContainer/Record" to="." method="ToggleRecording"]
 [connection signal="pressed" from="TaskDetailsContainer/PanelContainer/TaskDetailsEditing/Form/SaveTask" to="." method="SaveTask"]

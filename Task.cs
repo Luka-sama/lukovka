@@ -5,6 +5,11 @@ using System.Linq;
 using Godot;
 using Newtonsoft.Json;
 
+public class TimeEntry {
+	public DateTime Start;
+	public DateTime End;
+}
+
 public class Task {
 	public static int NextId { get; set; } = 1;
 	[JsonIgnore] public bool Expanded;
@@ -28,6 +33,11 @@ public class Task {
 	public List<string> Tags;
 	public int Priority;
 	public double Order;
+	public List<TimeEntry> TimeEntries = new();
+	// ReSharper disable once UnusedMember.Global
+	public static bool ShouldSerializeTimeEntries() {
+		return false;
+	}
 
 	public static void Create(string text, int parent) {
 		var datetime = CurrentTime();
@@ -62,6 +72,37 @@ public class Task {
 			return (Completed != DateTime.MinValue && Points == 0 ? 1 : pointsDone);
 		}
 		return pointsDone + Children.Sum(child => child.CountPointsDone());
+	}
+
+	public TimeSpan CountRecorded() {
+		var recorded = TimeSpan.Zero;
+		foreach (var timeEntry in TimeEntries) {
+			recorded += (timeEntry.End == DateTime.MinValue ? CurrentTime() : timeEntry.End) - timeEntry.Start;
+		}
+
+		return recorded;//Children.Aggregate(recorded, (total, child) => total + child.CountRecorded());
+	}
+
+	public void ToggleRecording() {
+		if (IsRecording()) {
+			StopRecording();
+		} else {
+			StartRecording();
+		}
+	}
+
+	public bool IsRecording() {
+		return TimeEntries.Any(timeEntry => timeEntry.End == DateTime.MinValue);
+	}
+
+	public void StartRecording() {
+		App.Request(HttpClient.Method.Post, Id.ToString(), Endpoint.Recording);
+		TimeEntries.Add(new TimeEntry {Start = CurrentTime()});
+	}
+
+	public void StopRecording() {
+		App.Request(HttpClient.Method.Post, "", Endpoint.Recording);
+		TimeEntries.Find(timeEntry => timeEntry.End == DateTime.MinValue).End = CurrentTime();
 	}
 
 	public void Complete() {
@@ -142,8 +183,7 @@ public class Task {
 	}
 
 	private static DateTime CurrentTime() {
-		var date = DateTime.Now.ToUniversalTime();
-		return new DateTime(date.Year, date.Month, date.Day, date.Hour, date.Minute, date.Second, date.Kind);
+		return DateTime.Now.ToUniversalTime();
 	}
 
 	private DateTime RepeatDate(DateTime dateTime) {

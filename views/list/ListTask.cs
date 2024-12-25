@@ -137,8 +137,7 @@ public partial class ListTask : Control {
 			} else {
 				ExpandTask();
 			}
-		} else if (!App.IsMobile() && click.ButtonIndex is MouseButton.Middle or MouseButton.Right ||
-		           App.IsMobile() && click.DoubleClick) {
+		} else if (!App.IsMobile() && click.ButtonIndex is MouseButton.Middle or MouseButton.Right) {
 			var taskContextMenu = GetNode<PopupMenu>("%TaskContextMenu");
 			if (taskContextMenu.Visible) {
 				taskContextMenu.Hide();

@@ -10,7 +10,7 @@ public static class Customizer {
 	public static readonly DateTime Epoch = new(1970, 1, 1);
 	private static readonly FieldInfo[] Fields = typeof(Task)
 		.GetFields(BindingFlags.Public | BindingFlags.Instance)
-		.Where(field => !Attribute.IsDefined(field, typeof(JsonIgnoreAttribute)))
+		.Where(field => !Attribute.IsDefined(field, typeof(JsonIgnoreAttribute)) && field.Name != "TimeEntries")
 		.ToArray();
 	private static readonly string[] FieldNames = Fields
 		.Select(field => char.ToLower(field.Name[0]) + (field.Name.Length == 1 ? "" : field.Name[1..]))
