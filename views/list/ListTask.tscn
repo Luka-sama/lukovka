@@ -67,7 +67,6 @@ size_flags_vertical = 0
 unique_name_in_owner = true
 item_count = 4
 item_0/text = "Show details"
-item_0/id = 0
 item_1/text = "Set as root"
 item_1/id = 1
 item_2/text = "Edit"
