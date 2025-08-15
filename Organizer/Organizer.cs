@@ -414,8 +414,8 @@ public partial class Organizer : Control {
 		foreach (var filterName in State.SelectedFilters) {
 			AddFilterButton(filterName);
 		}
-		
-		var sort = AllSorts.First(sort => sort.Name == State.SelectedSort);
+
+		var sort = AllSorts.First(sort => sort.Name == (State.SelectedSort.StartsWith("@") ? "Custom" : State.SelectedSort));
 		_sortMenu.Select(Array.IndexOf(AllSorts, sort) + 1);
 		
 		if (!string.IsNullOrEmpty(State.GroupBy)) {
